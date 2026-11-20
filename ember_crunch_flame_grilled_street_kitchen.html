@@ -1,0 +1,3109 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ember &amp; Crunch — Flame-Grilled Burgers, Shawarmas, Loaded Fries &amp; Pizzas</title>
+
+  <!-- Google Fonts: Syne (Bold Street Display), Bebas Neue (Impact Headers), Plus Jakarta Sans (Clean UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            charcoal: '#0f0b09',
+            grill: '#191310',
+            smoke: '#241b16',
+            flame: '#ff4d00',
+            sriracha: '#e62e1b',
+            cheddar: '#ffb800',
+            brioche: '#f7d08a',
+            cream: '#fff8f0',
+            mist: '#b8a99a',
+          },
+          fontFamily: {
+            display: ['"Syne"', 'sans-serif'],
+            impact: ['"Bebas Neue"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root {
+      --charcoal: #0f0b09;
+      --grill: #191310;
+      --flame: #ff4d00;
+      --sriracha: #e62e1b;
+      --cheddar: #ffb800;
+      --cream: #fff8f0;
+    }
+
+    /* Theme-Matched Text Selection */
+    ::selection {
+      background-color: #ff4d00;
+      color: #fff8f0;
+      text-shadow: 0 1px 6px rgba(15, 11, 9, 0.45);
+    }
+    ::-moz-selection {
+      background-color: #ff4d00;
+      color: #fff8f0;
+    }
+
+    html {
+      background-color: var(--charcoal);
+      color: var(--cream);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    body {
+      background-color: var(--charcoal);
+      overflow-x: clip;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f0b09;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #ffb800, #ff4d00, #e62e1b);
+      border-radius: 999px;
+    }
+
+    .grill-grid {
+      background-image:
+        linear-gradient(to right, rgba(255, 184, 0, 0.045) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 184, 0, 0.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .ember-border {
+      border: 1px solid rgba(255, 184, 0, 0.2);
+    }
+
+    .photo-scrim {
+      background: linear-gradient(180deg, rgba(15, 11, 9, 0.05) 0%, rgba(15, 11, 9, 0.25) 55%, rgba(15, 11, 9, 0.92) 100%);
+    }
+
+    /* =========================================================================
+       PHYSICS-BASED HANGING CAST-IRON GRILL TOOLS (PENDULUM)
+       ========================================================================= */
+    .hanging-tool-anchor {
+      position: fixed;
+      top: 78px;
+      z-index: 35;
+      pointer-events: none;
+      transform-origin: top center;
+      will-change: transform;
+      filter: drop-shadow(0 14px 24px rgba(255, 77, 0, 0.28));
+    }
+    .hanging-tool-left { left: 10px; }
+    .hanging-tool-right { right: 10px; }
+
+    .tool-pendulum-body {
+      transform-origin: 40px 0px;
+      will-change: transform;
+    }
+    .tool-charm-swing {
+      transform-origin: 40px 132px;
+      will-change: transform;
+    }
+
+    @keyframes emberGlowPulse {
+      0%, 100% { opacity: 0.92; }
+      50% { opacity: 0.62; }
+    }
+    .ember-tool-glow {
+      animation: emberGlowPulse 2.8s ease-in-out infinite;
+    }
+
+    @media (max-width: 1023px) {
+      .hanging-tool-anchor { display: none; }
+    }
+
+    /* =========================================================================
+       SCROLL-DRIVEN DISH ANATOMY & INGREDIENT EXPLOSION SHOWCASE
+       ========================================================================= */
+    @media (min-width: 1024px) {
+      #anatomy-showcase {
+        min-height: 440vh;
+      }
+      .anatomy-sticky-stage {
+        position: sticky;
+        top: 82px;
+      }
+    }
+
+    .anatomy-dish-core {
+      will-change: transform, opacity;
+      transition: box-shadow 0.35s ease;
+    }
+
+    .anatomy-node {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      will-change: transform, opacity;
+      pointer-events: none;
+    }
+
+    .anatomy-progress-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: rgba(255, 184, 0, 0.12);
+      overflow: hidden;
+    }
+    .anatomy-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #e62e1b 0%, #ff4d00 50%, #ffb800 100%);
+      box-shadow: 0 0 12px rgba(255, 184, 0, 0.7);
+      will-change: width;
+    }
+
+    /* =========================================================================
+       FLAME-GLOW MOUSE POINTER HALO
+       ========================================================================= */
+    #pointer-halo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px;
+      height: 280px;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 9996;
+      opacity: 0;
+      transform: translate3d(-500px, -500px, 0);
+      background: radial-gradient(
+        circle,
+        rgba(255, 184, 0, 0.14) 0%,
+        rgba(255, 77, 0, 0.08) 38%,
+        rgba(230, 46, 27, 0.03) 64%,
+        rgba(15, 11, 9, 0) 76%
+      );
+      transition: opacity 0.3s ease;
+      will-change: transform, opacity;
+      mix-blend-mode: screen;
+    }
+
+    /* =========================================================================
+       PRODUCT BURST-OUT ANIMATION (3D POP + RADIAL SHOCKWAVE + GLOSS)
+       ========================================================================= */
+    .product-card {
+      transform-style: preserve-3d;
+      transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.35s ease;
+      will-change: transform;
+    }
+
+    .product-card:hover {
+      border-color: rgba(255, 184, 0, 0.7);
+      box-shadow: 0 28px 54px -14px rgba(0, 0, 0, 0.9), 0 0 36px rgba(255, 77, 0, 0.24);
+    }
+
+    /* Photo Burst-Out Effect on Hover & Active Burst */
+    .product-photo-wrap {
+      overflow: visible;
+    }
+
+    .product-burst-img {
+      transition: transform 0.55s cubic-bezier(0.18, 0.89, 0.32, 1.28), filter 0.4s ease;
+      will-change: transform;
+    }
+
+    .product-card:hover .product-burst-img {
+      transform: scale(1.13) translateY(-10px) rotate(-1.5deg);
+      filter: drop-shadow(0 22px 28px rgba(255, 77, 0, 0.35)) contrast(1.06) saturate(1.12);
+    }
+
+    @keyframes productBurstPop {
+      0% { transform: scale(0.95); }
+      40% { transform: scale(1.18) translateY(-14px) rotate(2deg); }
+      72% { transform: scale(1.07) translateY(-6px) rotate(-1deg); }
+      100% { transform: scale(1.12) translateY(-8px) rotate(0deg); }
+    }
+
+    .product-card.is-bursting .product-burst-img {
+      animation: productBurstPop 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes burstRingWave {
+      0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(0.35);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(1.85);
+      }
+    }
+
+    .burst-shockwave {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 160px;
+      height: 160px;
+      border-radius: 9999px;
+      border: 2.5px solid rgba(255, 184, 0, 0.85);
+      box-shadow: 0 0 28px rgba(255, 77, 0, 0.75);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 25;
+    }
+    .product-card.is-bursting .burst-shockwave {
+      animation: burstRingWave 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Hero 12 O'Clock Orbit Swap Animation */
+    @keyframes heroSwapPop {
+      0% { transform: scale(0.76) rotate(-6deg); opacity: 0.5; }
+      55% { transform: scale(1.09) rotate(2deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .hero-swap-pop {
+      animation: heroSwapPop 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes twelveGateFlash {
+      0% { transform: translateX(-50%) scale(1); box-shadow: 0 0 12px rgba(255, 184, 0, 0.7); }
+      45% { transform: translateX(-50%) scale(1.45); box-shadow: 0 0 32px rgba(255, 77, 0, 1); }
+      100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 12px rgba(255, 184, 0, 0.7); }
+    }
+    .twelve-gate-flash {
+      animation: twelveGateFlash 0.55s ease-out;
+    }
+
+    /* Floating Burst Badge Pills popping out on hover */
+    .burst-chip {
+      transition: transform 0.45s cubic-bezier(0.18, 0.89, 0.32, 1.35), opacity 0.3s ease;
+    }
+    .product-card:hover .burst-chip-tl {
+      transform: translate3d(-6px, -8px, 30px) rotate(-4deg) scale(1.06);
+    }
+    .product-card:hover .burst-chip-tr {
+      transform: translate3d(6px, -8px, 30px) rotate(4deg) scale(1.06);
+    }
+
+    /* Cursor-Tracked Flame Glaze Sheen */
+    .flame-sheen {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.28s ease;
+      mix-blend-mode: screen;
+      background: radial-gradient(
+        circle 240px at var(--gx, 50%) var(--gy, 50%),
+        rgba(255, 226, 150, 0.22) 0%,
+        rgba(255, 77, 0, 0.11) 45%,
+        rgba(15, 11, 9, 0) 76%
+      );
+      z-index: 15;
+    }
+    .product-card:hover .flame-sheen {
+      opacity: 1;
+    }
+
+    /* =========================================================================
+       SCROLL-DRIVEN FLAME LINE SHOWCASE (STICKY 4-STATION RUNWAY)
+       ========================================================================= */
+    @media (min-width: 1024px) {
+      #flame-line {
+        min-height: 320vh;
+      }
+      .flame-sticky-stage {
+        position: sticky;
+        top: 84px;
+      }
+    }
+
+    .station-photo-layer {
+      position: absolute;
+      inset: 0;
+    }
+    .station-photo-layer img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    @keyframes radialBurstReveal {
+      0% {
+        clip-path: circle(0% at 50% 50%);
+        transform: scale(1.16);
+      }
+      100% {
+        clip-path: circle(78% at 50% 50%);
+        transform: scale(1);
+      }
+    }
+    .station-photo-layer.is-burst-revealing {
+      animation: radialBurstReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .station-progress-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: rgba(255, 184, 0, 0.12);
+      overflow: hidden;
+    }
+    .station-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #e62e1b 0%, #ff4d00 50%, #ffb800 100%);
+      box-shadow: 0 0 12px rgba(255, 184, 0, 0.7);
+      will-change: width;
+    }
+
+    /* =========================================================================
+       SCROLL REVEAL ANIMATION
+       ========================================================================= */
+    .reveal-up {
+      opacity: 0;
+      transform: translateY(28px) scale(0.98);
+      transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-up.is-visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Infinite Flavor Marquee */
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      animation: marqueeScroll 26s linear infinite;
+    }
+    .marquee-track:hover {
+      animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-up, .product-card, .product-burst-img, .marquee-track, .neon-flicker {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+        opacity: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-charcoal text-cream selection:bg-flame selection:text-cream">
+
+  <!-- TOP FLAME-GRADIENT SCROLL PROGRESS BAR -->
+  <div class="fixed top-0 left-0 right-0 z-50 h-[3.5px] bg-white/5 pointer-events-none">
+    <div id="scroll-progress" class="h-full w-0 bg-gradient-to-r from-cheddar via-flame to-sriracha"></div>
+  </div>
+
+  <!-- FULLSCREEN SIZZLE SPARKLE & PRODUCT BURST-OUT PARTICLE CANVAS -->
+  <canvas id="fx-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-[9998]" aria-hidden="true"></canvas>
+  <div id="pointer-halo" aria-hidden="true"></div>
+
+  <!-- PHYSICS-BASED HANGING CAST-IRON SMASH SPATULA — LEFT -->
+  <div class="hanging-tool-anchor hanging-tool-left" aria-hidden="true">
+    <svg width="80" height="196" viewBox="0 0 80 196" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="steelGradL" x1="20" y1="24" x2="60" y2="140" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#f7d08a" />
+          <stop offset="48%" stop-color="#a89b8c" />
+          <stop offset="100%" stop-color="#3a2d25" />
+        </linearGradient>
+        <linearGradient id="flameCharmGrad" x1="40" y1="136" x2="40" y2="178" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffb800" />
+          <stop offset="55%" stop-color="#ff4d00" />
+          <stop offset="100%" stop-color="#e62e1b" />
+        </linearGradient>
+      </defs>
+      <g id="tool-left-body" class="tool-pendulum-body">
+        <!-- Hook & Brass Ring -->
+        <line x1="40" y1="0" x2="40" y2="20" stroke="#ffb800" stroke-width="2" />
+        <circle cx="40" cy="24" r="5" stroke="#ffb800" stroke-width="2" fill="#191310" />
+        <!-- Walnut & Riveted Handle -->
+        <rect x="34" y="29" width="12" height="40" rx="5" fill="#2b1910" stroke="#ffb800" stroke-width="1.3" />
+        <circle cx="40" cy="40" r="1.8" fill="#ffb800" />
+        <circle cx="40" cy="52" r="1.8" fill="#ffb800" />
+        <circle cx="40" cy="62" r="1.8" fill="#ffb800" />
+        <!-- Neck & Slotted Smash Spatula Blade -->
+        <rect x="37" y="69" width="6" height="14" fill="url(#steelGradL)" />
+        <path d="M22 83 H58 L62 124 C62 128 59 131 55 131 H25 C21 131 18 128 18 124 L22 83 Z" fill="url(#steelGradL)" stroke="#ffb800" stroke-width="1.4" />
+        <!-- Spatula Grease Slots -->
+        <rect x="27" y="92" width="4" height="28" rx="2" fill="#0f0b09" />
+        <rect x="38" y="92" width="4" height="28" rx="2" fill="#0f0b09" />
+        <rect x="49" y="92" width="4" height="28" rx="2" fill="#0f0b09" />
+        <!-- Secondary Swinging Flame Charm -->
+        <g id="tool-left-charm" class="tool-charm-swing">
+          <line x1="40" y1="131" x2="40" y2="144" stroke="#ffb800" stroke-width="1.6" />
+          <path class="ember-tool-glow" d="M40 144 C47 151 51 158 51 165 C51 171.5 46 177 40 177 C34 177 29 171.5 29 165 C29 158 33 151 40 144 Z" fill="url(#flameCharmGrad)" stroke="#fff8f0" stroke-opacity="0.45" stroke-width="1" />
+          <path d="M40 155 C43.5 159 45 162.5 45 166 C45 169.5 42.8 172 40 172 C37.2 172 35 169.5 35 166 C35 162.5 36.5 159 40 155 Z" fill="#fff8f0" fill-opacity="0.75" />
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- PHYSICS-BASED HANGING BRASS PIZZA WHEEL — RIGHT -->
+  <div class="hanging-tool-anchor hanging-tool-right" aria-hidden="true">
+    <svg width="80" height="196" viewBox="0 0 80 196" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="wheelGradR" cx="45%" cy="40%" r="55%">
+          <stop offset="0%" stop-color="#fff8f0" />
+          <stop offset="55%" stop-color="#b8a99a" />
+          <stop offset="100%" stop-color="#4a3a30" />
+        </radialGradient>
+      </defs>
+      <g id="tool-right-body" class="tool-pendulum-body">
+        <!-- Hook & Brass Ring -->
+        <line x1="40" y1="0" x2="40" y2="20" stroke="#ffb800" stroke-width="2" />
+        <circle cx="40" cy="24" r="5" stroke="#ffb800" stroke-width="2" fill="#191310" />
+        <!-- Handle & Finger Guard -->
+        <rect x="33.5" y="29" width="13" height="42" rx="6" fill="#2b1910" stroke="#ff4d00" stroke-width="1.3" />
+        <rect x="27" y="71" width="26" height="6" rx="3" fill="#ffb800" />
+        <!-- Cutter Fork & Circular Blade -->
+        <path d="M35 77 L31 104 M45 77 L49 104" stroke="#ffb800" stroke-width="2.4" stroke-linecap="round" />
+        <circle cx="40" cy="108" r="23" fill="url(#wheelGradR)" stroke="#ffb800" stroke-width="2" />
+        <circle cx="40" cy="108" r="15" stroke="#191310" stroke-opacity="0.4" stroke-width="1.2" stroke-dasharray="4 4" />
+        <circle cx="40" cy="108" r="5" fill="#ff4d00" stroke="#ffb800" stroke-width="1.5" />
+        <!-- Secondary Swinging Chili Pepper Charm -->
+        <g id="tool-right-charm" class="tool-charm-swing">
+          <line x1="40" y1="131" x2="40" y2="144" stroke="#ffb800" stroke-width="1.6" />
+          <path d="M36 144 C40 141 44 143 44 146" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" />
+          <path class="ember-tool-glow" d="M37 146 C44 146 49 154 46 165 C43.5 173 36 177 32 175 C35 170 36 164 35 157 C34.5 152 34.5 148 37 146 Z" fill="#e62e1b" stroke="#ffb800" stroke-width="1" />
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- =========================================================================
+       FIXED NAVIGATION BAR
+       ========================================================================= -->
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 border-b border-transparent transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 h-20 flex items-center justify-between gap-4">
+      <!-- Brand Logo -->
+      <a href="#hero" class="flex items-center gap-3 group">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cheddar via-flame to-sriracha flex items-center justify-center shadow-lg shadow-flame/30 group-hover:rotate-6 transition-transform">
+          <svg class="w-6 h-6 text-charcoal" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.7 2.2c.4 2.5-1.1 4.2-2.4 5.5-1.4 1.4-2.8 2.8-2.8 5.2 0 2.5 1.9 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.4-.6-2.7-1.5-3.6-.1 1.2-.8 2.1-1.9 2.3.5-1.9.1-4.1-1.4-5.7-.3-.4-.6-.8-.6-1.4 0-.8.5-1.6 1.6-2.3z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="font-display text-lg sm:text-xl font-extrabold tracking-tight text-cream leading-none">
+            EMBER <span class="text-flame">&amp;</span> CRUNCH
+          </div>
+          <div class="text-[10px] uppercase tracking-[0.26em] text-cheddar font-semibold mt-0.5">Flame-Grilled Street Kitchen</div>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden lg:flex items-center gap-6 text-xs uppercase tracking-[0.18em] font-semibold text-cream/80">
+        <a href="#flame-line" class="hover:text-cheddar transition-colors">Flame Line</a>
+        <a href="#menu" class="hover:text-cheddar transition-colors">Menu</a>
+        <a href="#anatomy-showcase" class="hover:text-cheddar transition-colors">Anatomy</a>
+        <a href="#sauce-bar" class="hover:text-cheddar transition-colors">Sauces</a>
+        <a href="#physics-kitchen" class="hover:text-cheddar transition-colors">Crunch Lab</a>
+        <a href="#reviews-locations" class="hover:text-cheddar transition-colors">Locations</a>
+      </nav>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <!-- Sound FX Toggle -->
+        <button id="sfx-btn" type="button" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-grill/90 border border-cheddar/25 hover:border-cheddar text-[11px] uppercase tracking-wider font-semibold text-cheddar transition-colors">
+          <span id="sfx-dot" class="w-2 h-2 rounded-full bg-mist"></span>
+          <span id="sfx-label">SFX Off</span>
+        </button>
+
+        <!-- Order Bag Button -->
+        <button id="open-bag-btn" type="button" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-flame hover:bg-sriracha text-cream text-xs uppercase tracking-wider font-bold shadow-lg shadow-flame/30 transition-all active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span class="hidden sm:inline">Order Bag</span>
+          <span id="bag-count" class="w-5 h-5 rounded-full bg-charcoal text-cheddar text-[11px] font-extrabold flex items-center justify-center">0</span>
+        </button>
+
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" type="button" aria-label="Toggle Menu" class="lg:hidden w-10 h-10 rounded-full bg-grill border border-cheddar/30 flex items-center justify-center text-cream">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobile-nav" class="hidden lg:hidden bg-charcoal/95 backdrop-blur-xl border-b border-cheddar/20 px-6 py-5 space-y-3">
+      <a href="#flame-line" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Flame Line</a>
+      <a href="#menu" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Full Menu</a>
+      <a href="#anatomy-showcase" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Dish Anatomy</a>
+      <a href="#sauce-bar" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Sauce Lab</a>
+      <a href="#physics-kitchen" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Crunch Lab</a>
+      <a href="#reviews-locations" class="mobile-nav-link block py-1.5 text-xs uppercase tracking-[0.2em] font-semibold text-cream/85 hover:text-cheddar">Reviews &amp; Locations</a>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       HERO SECTION — FLAME-GRILLED STREET KITCHEN & BURST-OUT CENTERPIECE
+       ========================================================================= -->
+  <section id="hero" class="relative min-h-screen pt-28 pb-16 sm:pt-32 sm:pb-24 flex items-center bg-charcoal grill-grid overflow-hidden">
+    <!-- Warm Ambient Radial Glows -->
+    <div class="absolute -top-24 -left-24 w-[420px] h-[420px] rounded-full bg-flame/15 blur-[110px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-[460px] h-[460px] rounded-full bg-cheddar/10 blur-[120px] pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 w-full relative z-10">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+
+        <!-- Left Hero Copy -->
+        <div id="hero-copy" class="lg:col-span-6 space-y-6 will-change-transform">
+          <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-grill border border-cheddar/35 shadow-lg">
+            <span class="w-2 h-2 rounded-full bg-flame animate-pulse"></span>
+            <span class="text-[11px] uppercase tracking-[0.24em] font-bold text-cheddar">Live Flame Grill &bull; Open Until 3 AM</span>
+          </div>
+
+          <h1 class="font-impact text-6xl sm:text-7xl xl:text-8xl tracking-wide text-cream leading-[0.94]">
+            SMASHED. CHARRED. <span class="text-transparent bg-clip-text bg-gradient-to-r from-cheddar via-flame to-sriracha">LOADED.</span>
+          </h1>
+
+          <p class="text-sm sm:text-base text-mist max-w-xl leading-relaxed">
+            Cast-iron smashed burgers, 24-hour charcoal spit shawarmas, volcano cheddar loaded fries, and 450°C wood-fired pizzas—crafted to burst with flavor in every single bite.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-3.5 pt-2">
+            <a href="#menu" class="px-7 py-4 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.2em] font-extrabold shadow-xl shadow-flame/35 transition-all active:scale-95">
+              Explore Burst Menu
+            </a>
+            <button id="hero-burst-btn" type="button" class="px-7 py-4 rounded-full bg-grill hover:bg-smoke border border-cheddar/45 text-cheddar text-xs uppercase tracking-[0.2em] font-bold transition-all active:scale-95">
+              Trigger Flavor Burst 🔥
+            </button>
+          </div>
+
+          <!-- Quick Street Stats -->
+          <div class="grid grid-cols-3 gap-4 pt-5 border-t border-cheddar/15 max-w-md">
+            <div>
+              <div class="font-impact text-3xl text-cheddar tracking-wider">280°C</div>
+              <div class="text-[10px] uppercase tracking-widest text-mist">Smash Iron</div>
+            </div>
+            <div>
+              <div class="font-impact text-3xl text-flame tracking-wider">450°C</div>
+              <div class="text-[10px] uppercase tracking-widest text-mist">Stone Pizza</div>
+            </div>
+            <div>
+              <div class="font-impact text-3xl text-cream tracking-wider">22 MIN</div>
+              <div class="text-[10px] uppercase tracking-widest text-mist">Hot Delivery</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Hero Stage: Exact Previous Visual + Rotating 12 O'Clock Swap Animation -->
+        <div id="hero-stage" class="lg:col-span-6 flex items-center justify-center relative will-change-transform py-6">
+          <div id="hero-orbit-container" class="relative w-[300px] h-[300px] sm:w-[420px] sm:h-[420px] flex items-center justify-center">
+            <!-- Rotating Dashed Orbit Ring -->
+            <div id="hero-orbit-ring" class="absolute inset-0 rounded-full border-2 border-dashed border-cheddar/30 pointer-events-none will-change-transform"></div>
+            <div class="absolute inset-6 rounded-full border border-flame/25 pointer-events-none"></div>
+
+            <!-- Main Centerpiece Medallion (Swaps with orbiting item at 12 o'clock) -->
+            <div
+              id="hero-main-medallion"
+              onclick="triggerHeroFlavorBurst(this)"
+              class="product-card relative z-20 w-56 h-56 sm:w-72 sm:h-72 rounded-full overflow-hidden border-4 border-cheddar/80 shadow-2xl shadow-flame/35 cursor-pointer bg-grill group"
+              title="Click for a Flavor Burst!"
+            >
+              <div class="burst-shockwave"></div>
+              <img
+                id="hero-center-img"
+                src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85"
+                alt="Double Ember Smash Burger"
+                class="product-burst-img w-full h-full object-cover"
+                onerror="this.onerror=null; this.src='https://placehold.co/600x600/191310/ff4d00?text=Smash+Burger';"
+              />
+              <div class="absolute inset-0 photo-scrim pointer-events-none"></div>
+              <div class="absolute bottom-4 inset-x-0 text-center pointer-events-none">
+                <span id="hero-center-label" class="px-3 py-1 rounded-full bg-flame/95 text-cream text-[10px] uppercase tracking-[0.2em] font-extrabold shadow-md">Tap To Burst</span>
+              </div>
+            </div>
+
+            <!-- Orbiting Queue Satellites (Rotated Smoothly via JS) -->
+            <div id="hero-orbit-satellites" class="absolute inset-0 z-30 pointer-events-none"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- INFINITE STREET FLAVOR MARQUEE -->
+  <div class="bg-gradient-to-r from-sriracha via-flame to-cheddar text-charcoal py-3 overflow-hidden border-y border-cheddar/40">
+    <div class="marquee-track font-impact text-xl sm:text-2xl tracking-[0.14em] flex items-center gap-8 whitespace-nowrap">
+      <span>DOUBLE SMASH BURGERS</span><span>&bull;</span>
+      <span>CHARCOAL SPIT SHAWARMAS</span><span>&bull;</span>
+      <span>VOLCANO LOADED FRIES</span><span>&bull;</span>
+      <span>450°C WOOD-FIRED PIZZAS</span><span>&bull;</span>
+      <span>HOUSE-WHIPPED DIPS</span><span>&bull;</span>
+      <span>DOUBLE SMASH BURGERS</span><span>&bull;</span>
+      <span>CHARCOAL SPIT SHAWARMAS</span><span>&bull;</span>
+      <span>VOLCANO LOADED FRIES</span><span>&bull;</span>
+      <span>450°C WOOD-FIRED PIZZAS</span><span>&bull;</span>
+      <span>HOUSE-WHIPPED DIPS</span><span>&bull;</span>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SCROLL-DRIVEN LIVE FLAME LINE (4-STATION STICKY RUNWAY)
+       ========================================================================= -->
+  <section id="flame-line" class="relative py-20 lg:py-16 bg-grill border-b border-cheddar/15">
+    <div class="flame-sticky-stage">
+      <div class="max-w-7xl mx-auto px-5 sm:px-8">
+
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7 reveal-up">
+          <div>
+            <span class="text-xs uppercase tracking-[0.28em] font-bold text-flame">Scroll-Driven Kitchen Stations</span>
+            <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1 leading-none">THE LIVE <span class="text-cheddar">FLAME LINE</span></h2>
+          </div>
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-charcoal border border-cheddar/25 text-[11px] uppercase tracking-[0.2em] text-cheddar font-semibold self-start md:self-auto">
+            <span class="w-2 h-2 rounded-full bg-flame animate-pulse"></span>
+            <span>Station</span>
+            <span id="station-counter" class="text-cream tabular-nums">01 / 04</span>
+          </div>
+        </div>
+
+        <!-- 4 Station Progress Pills -->
+        <div id="station-pills" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7 reveal-up"></div>
+
+        <!-- Main Station Showcase Card -->
+        <div class="rounded-3xl overflow-hidden bg-charcoal ember-border shadow-2xl shadow-black/80 grid grid-cols-1 lg:grid-cols-12 reveal-up">
+          <!-- Left: Radial Burst-Revealing Food Photo -->
+          <div
+            class="lg:col-span-6 relative min-h-[290px] sm:min-h-[380px] lg:h-[430px] bg-grill overflow-hidden cursor-pointer"
+            onclick="triggerCurrentStationBurst(event)"
+          >
+            <div class="station-photo-layer z-[1]">
+              <img
+                id="station-img-base"
+                src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85"
+                alt="Double Ember Smash Burger"
+                onerror="this.onerror=null; this.src='https://placehold.co/900x700/191310/ff4d00?text=Flame+Station';"
+              />
+            </div>
+            <div id="station-top-layer" class="station-photo-layer z-[2]">
+              <img
+                id="station-img-top"
+                src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85"
+                alt="Double Ember Smash Burger"
+                onerror="this.onerror=null; this.src='https://placehold.co/900x700/191310/ff4d00?text=Flame+Station';"
+              />
+            </div>
+            <div class="absolute inset-0 photo-scrim z-10 pointer-events-none"></div>
+            <span id="station-heat" class="absolute top-4 left-4 z-20 px-3.5 py-1.5 rounded-full bg-charcoal/85 border border-cheddar/45 text-[10px] uppercase tracking-[0.2em] font-extrabold text-cheddar">
+              280°C CAST-IRON SEAR
+            </span>
+            <span class="absolute bottom-4 left-4 z-20 px-3 py-1 rounded-full bg-flame/90 text-cream text-[10px] uppercase tracking-wider font-bold">
+              Tap Photo To Burst
+            </span>
+          </div>
+
+          <!-- Right: Station Details -->
+          <div class="lg:col-span-6 p-7 sm:p-10 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between gap-3">
+                <span id="station-tag" class="text-[11px] uppercase tracking-[0.24em] font-bold text-flame">STATION 01 &bull; SMASH GRILL</span>
+                <span id="station-crunch" class="px-3 py-1 rounded-full bg-grill border border-cheddar/25 text-[11px] font-bold text-cheddar">Crunch Rating: 10/10</span>
+              </div>
+              <h3 id="station-title" class="font-impact text-4xl sm:text-5xl text-cream tracking-wide leading-none">
+                Double Ember Smash Burger
+              </h3>
+              <div id="station-price" class="font-impact text-3xl text-cheddar tracking-wider">$12.50</div>
+              <p id="station-desc" class="text-sm sm:text-base text-mist leading-relaxed">
+                Two crispy lacy-edged prime beef patties smashed on sizzling cast iron, blanketed in double melted aged cheddar, caramelized onions, house pickles, and smoky chipotle glaze on toasted brioche.
+              </p>
+            </div>
+
+            <div class="pt-4 border-t border-cheddar/15 flex flex-wrap items-center justify-between gap-4">
+              <button
+                id="station-order-btn"
+                type="button"
+                class="px-7 py-3.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.2em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95"
+              >
+                + Add Station Dish
+              </button>
+              <span class="text-xs text-mist/80 hidden lg:inline">Scroll to fire next station &darr;</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       FULL BURST-OUT FAST FOOD MENU (BURGERS, SHAWARMAS, LOADED FRIES, PIZZAS)
+       ========================================================================= -->
+  <section id="menu" class="relative py-24 sm:py-28 bg-charcoal grill-grid">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 reveal-up">
+        <div>
+          <span class="text-xs uppercase tracking-[0.28em] font-bold text-flame">Hover Or Tap Any Dish For Burst-Out FX</span>
+          <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1 leading-none">THE FULL <span class="text-cheddar">BURST MENU</span></h2>
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div id="menu-filters" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- 4-Column Responsive Burst-Out Product Grid -->
+      <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-up"></div>
+
+      <!-- Squad Burst Box Promo Banner -->
+      <div class="mt-14 rounded-3xl overflow-hidden bg-gradient-to-r from-sriracha/25 via-grill to-cheddar/20 border border-cheddar/40 p-7 sm:p-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 shadow-2xl reveal-up">
+        <div class="space-y-2">
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-flame text-cream text-[10px] uppercase tracking-[0.22em] font-extrabold">Squad Combo &bull; Save 22%</span>
+          <h3 class="font-impact text-4xl sm:text-5xl text-cream tracking-wide leading-none">THE ULTIMATE BURST BOX</h3>
+          <p class="text-sm text-mist max-w-2xl">
+            2 Double Ember Smash Burgers + 1 Charcoal Spit Shawarma + 1 Hot Honey Pepperoni Pizza + 1 Volcano Loaded Fries + 3 House Dips.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-4 shrink-0">
+          <div class="text-left lg:text-right">
+            <div class="text-xs text-mist line-through">$45.00</div>
+            <div class="font-impact text-4xl text-cheddar leading-none">$34.99</div>
+          </div>
+          <button
+            type="button"
+            onclick="addDealBoxToBag(event)"
+            class="px-7 py-4 rounded-full bg-gradient-to-r from-cheddar via-flame to-sriracha hover:brightness-110 text-charcoal font-extrabold text-xs uppercase tracking-[0.2em] shadow-xl shadow-flame/30 transition-all active:scale-95"
+          >
+            + Grab Squad Box
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       SCROLL-DRIVEN DISH ANATOMY: COMBINED FORM -> EXPLODED INGREDIENTS -> NEXT ITEM
+       ========================================================================= -->
+  <section id="anatomy-showcase" class="relative py-20 lg:py-16 bg-grill border-t border-cheddar/15">
+    <div class="anatomy-sticky-stage">
+      <div class="max-w-7xl mx-auto px-5 sm:px-8">
+
+        <!-- Section Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7 reveal-up">
+          <div>
+            <span class="text-xs uppercase tracking-[0.28em] font-bold text-flame">Scroll-Scrubbed Ingredient Breakdown</span>
+            <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1 leading-none">
+              INSIDE THE <span class="text-cheddar">CRUNCH</span>
+            </h2>
+          </div>
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-charcoal border border-cheddar/25 text-[11px] uppercase tracking-[0.2em] text-cheddar font-semibold self-start md:self-auto">
+            <span class="w-2 h-2 rounded-full bg-flame animate-pulse"></span>
+            <span id="anatomy-phase-label">Combined Form</span>
+            <span class="text-mist">&bull;</span>
+            <span id="anatomy-counter" class="text-cream tabular-nums">01 / 04</span>
+          </div>
+        </div>
+
+        <!-- 4 Item Progress Tabs (Burger -> Pizza -> Loaded Fries -> Shawarma) -->
+        <div id="anatomy-tabs" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-7 reveal-up"></div>
+
+        <!-- Main Interactive Anatomy Stage -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center reveal-up">
+
+          <!-- Left: Combined Photo -> Radial Exploded Ingredient Orbit -->
+          <div class="lg:col-span-6">
+            <div class="relative rounded-3xl bg-charcoal ember-border shadow-2xl shadow-black/80 h-[370px] sm:h-[440px] flex items-center justify-center overflow-hidden">
+              <!-- Ambient Radial Glow -->
+              <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,77,0,0.16)_0%,rgba(15,11,9,0)_68%)] pointer-events-none"></div>
+
+              <!-- Expanding SVG Connector Beams (Hidden when combined, extend on scroll) -->
+              <svg id="anatomy-beams-svg" class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 500 440" fill="none"></svg>
+
+              <!-- Central Combined Dish Photo Medallion -->
+              <div
+                id="anatomy-dish-core"
+                class="anatomy-dish-core relative z-20 w-48 h-48 sm:w-56 sm:h-56 rounded-full overflow-hidden border-[3px] border-cheddar/80 shadow-2xl shadow-flame/35 cursor-pointer bg-grill"
+                onclick="triggerAnatomyDishBurst(event)"
+              >
+                <img
+                  id="anatomy-dish-img"
+                  src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=85"
+                  alt="Double Ember Smash Burger"
+                  class="w-full h-full object-cover"
+                  onerror="this.onerror=null; this.src='https://placehold.co/600x600/191310/ffb800?text=Signature+Dish';"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-transparent to-transparent"></div>
+                <div class="absolute bottom-3 inset-x-0 text-center">
+                  <span id="anatomy-core-badge" class="px-3 py-0.5 rounded-full bg-flame/95 text-cream text-[9px] uppercase tracking-[0.2em] font-extrabold">Combined Form</span>
+                </div>
+              </div>
+
+              <!-- Floating Exploded Ingredient Nodes (Positioned dynamically on scroll) -->
+              <div id="anatomy-nodes-layer" class="absolute inset-0 z-30 pointer-events-none"></div>
+
+              <!-- Mobile / Manual Scrub Slider (Visible on mobile/tablet for easy testing) -->
+              <div class="lg:hidden absolute bottom-3 left-4 right-4 z-40 px-4 py-2 rounded-2xl bg-grill/90 border border-cheddar/30 flex items-center gap-3">
+                <span class="text-[10px] uppercase tracking-wider font-bold text-cheddar whitespace-nowrap">Explode</span>
+                <input id="anatomy-mobile-slider" type="range" min="0" max="100" value="0" aria-label="Scrub ingredient explosion" class="w-full accent-[#ff4d00] cursor-pointer" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Live Ingredient Dossier & Breakdown List -->
+          <div class="lg:col-span-6 space-y-5">
+            <div class="rounded-3xl bg-charcoal ember-border p-6 sm:p-8 shadow-2xl space-y-5">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <span id="anatomy-cat-tag" class="text-[11px] uppercase tracking-[0.24em] font-bold text-flame">01 &bull; SMASH BURGER ANATOMY</span>
+                  <h3 id="anatomy-title" class="font-impact text-4xl sm:text-5xl text-cream tracking-wide leading-none mt-1">
+                    Double Ember Smash Burger
+                  </h3>
+                </div>
+                <div id="anatomy-price" class="font-impact text-3xl sm:text-4xl text-cheddar tracking-wider shrink-0">$12.50</div>
+              </div>
+
+              <p id="anatomy-desc" class="text-sm text-mist leading-relaxed">
+                Starts stacked and scorching hot—scroll to peel apart every crispy, molten layer from toasted sesame brioche to cast-iron sear.
+              </p>
+
+              <!-- Exploded Ingredients Checklist (Highlights sequentially as you scroll) -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-bold">
+                  <span class="text-cheddar">Ingredient Breakdown</span>
+                  <span id="anatomy-explode-pct" class="text-mist tabular-nums">0% Revealed</span>
+                </div>
+                <div id="anatomy-ingredient-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1"></div>
+              </div>
+
+              <div class="pt-3 border-t border-cheddar/15 flex flex-wrap items-center justify-between gap-3">
+                <button
+                  id="anatomy-order-btn"
+                  type="button"
+                  class="px-7 py-3.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.18em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95"
+                >
+                  + Add This Dish to Bag
+                </button>
+                <span class="text-xs text-mist/80 hidden lg:inline">Keep scrolling for next dish &darr;</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       NEW SECTION 2: SIGNATURE SAUCE & DIP LAB
+       ========================================================================= -->
+  <section id="sauce-bar" class="relative py-24 sm:py-28 bg-charcoal grill-grid border-t border-cheddar/15">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-12 reveal-up">
+        <div>
+          <span class="text-xs uppercase tracking-[0.28em] font-bold text-flame">House-Whipped Daily &bull; $1.50 Per Cup</span>
+          <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1">THE SIGNATURE SAUCE LAB</h2>
+        </div>
+        <p class="text-sm text-mist max-w-md">
+          Dunk your loaded fries, drizzle your wood-fired crust, or slather your charcoal shawarma with five house-made liquid obsessions.
+        </p>
+      </div>
+
+      <div id="sauce-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 reveal-up"></div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       NEW SECTION 3: BEHIND THE FLAME (SCROLL-PARALLAX CRAFT STORY)
+       ========================================================================= -->
+  <section id="craft-story" class="relative py-24 sm:py-28 bg-grill border-t border-cheddar/15 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-14 reveal-up">
+        <span class="text-xs uppercase tracking-[0.28em] font-bold text-cheddar">Real Fire &bull; Zero Shortcuts</span>
+        <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1">WHY OUR CRUNCH HITS DIFFERENT</h2>
+        <p class="mt-2 text-sm sm:text-base text-mist">
+          Fast food speed meets slow-crafted street kitchen obsession. Every ingredient is prepped fresh before the flames ignite.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-7 reveal-up">
+        <!-- Pillar 1 -->
+        <article class="craft-parallax-card rounded-3xl overflow-hidden bg-charcoal ember-border shadow-2xl flex flex-col">
+          <div class="relative h-56 overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=85"
+              alt="Fresh Cast-Iron Smash Beef"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              onerror="this.onerror=null; this.src='https://placehold.co/700x480/191310/ff4d00?text=Smash+Grill';"
+            />
+            <div class="absolute inset-0 photo-scrim"></div>
+            <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-flame text-cream text-[10px] uppercase tracking-widest font-extrabold">01 &bull; Cast-Iron Sear</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-impact text-3xl text-cream tracking-wide">Never-Frozen Prime Chuck</h3>
+              <p class="mt-2 text-sm text-mist leading-relaxed">
+                Hand-balled daily and smashed flat onto 280°C seasoned iron to lock in juices while caramelizing razor-crisp lacy edges.
+              </p>
+            </div>
+            <div class="mt-5 pt-4 border-t border-cheddar/15 flex items-center justify-between text-xs font-bold text-cheddar">
+              <span>Maillard Crust Time</span>
+              <span>90 Seconds</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Pillar 2 -->
+        <article class="craft-parallax-card md:translate-y-4 rounded-3xl overflow-hidden bg-charcoal ember-border shadow-2xl flex flex-col">
+          <div class="relative h-56 overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=85"
+              alt="48-Hour Wood-Fired Sourdough"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              onerror="this.onerror=null; this.src='https://placehold.co/700x480/191310/ffb800?text=Wood+Fired';"
+            />
+            <div class="absolute inset-0 photo-scrim"></div>
+            <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-cheddar text-charcoal text-[10px] uppercase tracking-widest font-extrabold">02 &bull; 48h Ferment</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-impact text-3xl text-cream tracking-wide">Blistered 450°C Sourdough</h3>
+              <p class="mt-2 text-sm text-mist leading-relaxed">
+                Cold-fermented for two full days with Italian Tipo 00 flour, then fired on blazing volcanic stone for a leopard-spotted airy crunch.
+              </p>
+            </div>
+            <div class="mt-5 pt-4 border-t border-cheddar/15 flex items-center justify-between text-xs font-bold text-cheddar">
+              <span>Deck Oven Heat</span>
+              <span>450°C Stone</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Pillar 3 -->
+        <article class="craft-parallax-card rounded-3xl overflow-hidden bg-charcoal ember-border shadow-2xl flex flex-col">
+          <div class="relative h-56 overflow-hidden">
+            <img
+              src="https://images.unsplash.com/photo-1561651823-34feb02250e4?auto=format&fit=crop&w=900&q=85"
+              alt="24-Hour Charcoal Spit Shawarma"
+              class="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+              onerror="this.onerror=null; this.src='https://placehold.co/700x480/191310/e62e1b?text=Charcoal+Spit';"
+            />
+            <div class="absolute inset-0 photo-scrim"></div>
+            <span class="absolute top-4 left-4 px-3 py-1 rounded-full bg-sriracha text-cream text-[10px] uppercase tracking-widest font-extrabold">03 &bull; Live Charcoal</span>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-impact text-3xl text-cream tracking-wide">14-Spice Vertical Rotisserie</h3>
+              <p class="mt-2 text-sm text-mist leading-relaxed">
+                Stacked high on rotating vertical spits over glowing hardwood embers, basted in citrus-sumac oil and shaved to order into blistered saj.
+              </p>
+            </div>
+            <div class="mt-5 pt-4 border-t border-cheddar/15 flex items-center justify-between text-xs font-bold text-cheddar">
+              <span>Spice Marinade</span>
+              <span>24 Hours</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       INTERACTIVE PHYSICS-BASED "CRUNCH & EMBER LAB" PLAYGROUND
+       ========================================================================= -->
+  <section id="physics-kitchen" class="relative py-24 sm:py-28 bg-grill border-y border-cheddar/15 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center reveal-up">
+        <div class="lg:col-span-5 space-y-5">
+          <span class="text-xs uppercase tracking-[0.28em] font-bold text-cheddar">Real-Time 2D Gravity &amp; Collision Physics</span>
+          <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream leading-none">
+            THE CRUNCH <span class="text-flame">PHYSICS</span> LAB
+          </h2>
+          <p class="text-sm sm:text-base text-mist leading-relaxed">
+            Move your cursor through the pit to toss and deflect bouncing flavor orbs—or hit <strong>Drop Combo</strong> to launch burgers, pizzas, fries, and shawarmas with real gravity, wall bounce, and elastic collisions.
+          </p>
+          <div class="flex flex-wrap gap-3 pt-2">
+            <button id="physics-drop-btn" type="button" class="px-6 py-3.5 rounded-full bg-flame hover:bg-sriracha text-cream text-xs uppercase tracking-[0.18em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95">
+              Drop Combo (+6)
+            </button>
+            <button id="physics-burst-btn" type="button" class="px-6 py-3.5 rounded-full bg-charcoal hover:bg-smoke border border-cheddar/45 text-cheddar text-xs uppercase tracking-[0.18em] font-bold transition-all active:scale-95">
+              Zero-G Shockwave
+            </button>
+          </div>
+          <p class="text-xs text-mist/75">Tip: Click anywhere inside the pit to spawn a fresh bouncing flavor orb right under your pointer.</p>
+        </div>
+
+        <div class="lg:col-span-7">
+          <div class="relative rounded-3xl overflow-hidden bg-charcoal border-2 border-cheddar/35 shadow-2xl shadow-black/80 h-[340px] sm:h-[390px]">
+            <canvas id="physics-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+            <div class="absolute top-4 left-4 pointer-events-none px-3.5 py-1.5 rounded-full bg-grill/85 border border-cheddar/25 text-[10px] uppercase tracking-[0.2em] text-cheddar font-bold">
+              Interactive Gravity Pit &bull; Move Pointer to Push
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       NEW SECTION 4: CRAVER REVIEWS & STREET KITCHEN LOCATIONS
+       ========================================================================= -->
+  <section id="reviews-locations" class="relative py-24 sm:py-28 bg-grill border-t border-cheddar/15">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 space-y-20">
+      <!-- Verified Craver Reviews -->
+      <div class="reveal-up">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+          <div>
+            <span class="text-xs uppercase tracking-[0.28em] font-bold text-flame">4.9 ★ Average Across 3,400+ Orders</span>
+            <h2 class="font-impact text-5xl sm:text-6xl tracking-wide text-cream mt-1">STREET CRAVER REVIEWS</h2>
+          </div>
+          <span class="text-xs uppercase tracking-[0.2em] text-cheddar font-semibold">100% Verified Late-Night Fans</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="rounded-3xl bg-charcoal ember-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="text-cheddar tracking-widest text-sm">★★★★★</div>
+              <span class="px-2.5 py-0.5 rounded-full bg-grill border border-cheddar/25 text-[10px] uppercase tracking-wider text-flame font-bold">Double Smash</span>
+            </div>
+            <p class="text-sm text-cream/90 leading-relaxed">
+              &ldquo;The lacy crust on the Double Ember Smash is unreal. Add the smoky chipotle glaze and volcano fries and it’s easily the best late-night spot in town.&rdquo;
+            </p>
+            <div class="pt-3 border-t border-cheddar/10 flex items-center justify-between text-xs">
+              <span class="font-bold text-cream">Zainab K.</span>
+              <span class="text-mist">Ordered 2 days ago</span>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-charcoal ember-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="text-cheddar tracking-widest text-sm">★★★★★</div>
+              <span class="px-2.5 py-0.5 rounded-full bg-grill border border-cheddar/25 text-[10px] uppercase tracking-wider text-cheddar font-bold">Charcoal Shawarma</span>
+            </div>
+            <p class="text-sm text-cream/90 leading-relaxed">
+              &ldquo;You can literally taste the open charcoal smoke in every bite. The whipped garlic toum and crispy fries tucked inside the toasted saj wrap are pure perfection.&rdquo;
+            </p>
+            <div class="pt-3 border-t border-cheddar/10 flex items-center justify-between text-xs">
+              <span class="font-bold text-cream">Hamza R.</span>
+              <span class="text-mist">Ordered 4 days ago</span>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-charcoal ember-border p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="text-cheddar tracking-widest text-sm">★★★★★</div>
+              <span class="px-2.5 py-0.5 rounded-full bg-grill border border-cheddar/25 text-[10px] uppercase tracking-wider text-sriracha font-bold">Hot Honey Pizza</span>
+            </div>
+            <p class="text-sm text-cream/90 leading-relaxed">
+              &ldquo;Cupping crispy pepperoni with chili wildflower honey on a blistered sourdough crust—arrived piping hot in 21 minutes flat. Ordered the Squad Box twice this week!&rdquo;
+            </p>
+            <div class="pt-3 border-t border-cheddar/10 flex items-center justify-between text-xs">
+              <span class="font-bold text-cream">Daniyal M.</span>
+              <span class="text-mist">Ordered yesterday</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Branch Selector & Express Catering / Pickup Request -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch reveal-up">
+        <!-- Branch Switcher -->
+        <div class="lg:col-span-6 rounded-3xl bg-charcoal ember-border p-7 sm:p-8 flex flex-col justify-between space-y-6">
+          <div>
+            <span class="text-xs uppercase tracking-[0.26em] font-bold text-cheddar">Find Our Grills</span>
+            <h3 class="font-impact text-4xl sm:text-5xl text-cream tracking-wide mt-1">STREET KITCHEN HUBS</h3>
+            <div id="branch-tabs" class="flex flex-wrap gap-2 mt-5"></div>
+          </div>
+
+          <div class="rounded-2xl bg-grill border border-cheddar/20 p-5 space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <span id="branch-name" class="font-display text-lg font-extrabold text-cream">Downtown Flame Flagship</span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/35 text-[10px] uppercase tracking-wider font-bold text-emerald-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Open Now
+              </span>
+            </div>
+            <p id="branch-address" class="text-sm text-mist">42 Flame Boulevard, Street Food District</p>
+            <div class="grid grid-cols-2 gap-3 pt-2 text-xs">
+              <div class="p-3 rounded-xl bg-charcoal border border-cheddar/15">
+                <div class="text-[10px] uppercase tracking-wider text-cheddar">Grill Hours</div>
+                <div id="branch-hours" class="text-cream font-semibold mt-0.5">11:30 AM – 3:00 AM</div>
+              </div>
+              <div class="p-3 rounded-xl bg-charcoal border border-cheddar/15">
+                <div class="text-[10px] uppercase tracking-wider text-cheddar">Est. Pickup</div>
+                <div id="branch-pickup" class="text-cream font-semibold mt-0.5">12–15 Minutes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Party Box / VIP Pickup Express Form -->
+        <div class="lg:col-span-6 rounded-3xl bg-charcoal ember-border p-7 sm:p-8">
+          <span class="text-xs uppercase tracking-[0.26em] font-bold text-flame">Events &amp; Midnight Cravings</span>
+          <h3 class="font-impact text-4xl sm:text-5xl text-cream tracking-wide mt-1">BOOK A PARTY FEAST</h3>
+          <p class="text-sm text-mist mt-1.5">Hosting game night or an office lunch? Lock in 20+ smash burgers, shawarma trays, or wood-fired pizzas.</p>
+
+          <form id="party-form" class="mt-5 space-y-3.5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <input id="party-name" type="text" required placeholder="Your Name" class="w-full px-4 py-3 rounded-xl bg-grill border border-cheddar/25 focus:border-cheddar focus:outline-none text-sm text-cream placeholder-mist/50" />
+              <input id="party-phone" type="text" required placeholder="Phone or Email" class="w-full px-4 py-3 rounded-xl bg-grill border border-cheddar/25 focus:border-cheddar focus:outline-none text-sm text-cream placeholder-mist/50" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <select id="party-size" class="w-full px-4 py-3 rounded-xl bg-grill border border-cheddar/25 focus:border-cheddar focus:outline-none text-sm text-cream">
+                <option>10–20 Guests (Squad Pack)</option>
+                <option>20–40 Guests (Game Night)</option>
+                <option>50+ Guests (Full Street Catering)</option>
+              </select>
+              <input id="party-date" type="date" required class="w-full px-4 py-3 rounded-xl bg-grill border border-cheddar/25 focus:border-cheddar focus:outline-none text-sm text-cream" />
+            </div>
+            <button type="submit" class="w-full py-3.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.2em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95">
+              Request Express Feast Quote
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       FOOTER
+       ========================================================================= -->
+  <footer class="bg-grill border-t border-cheddar/15 pt-14 pb-10">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10 pb-10 border-b border-cheddar/15">
+        <div class="space-y-3">
+          <div class="font-display text-2xl font-extrabold text-cream">EMBER <span class="text-flame">&amp;</span> CRUNCH</div>
+          <p class="text-sm text-mist max-w-sm">
+            Craft fast food fired over real wood and cast iron. Smashed burgers, charcoal shawarmas, loaded fries, and blistered pizzas served scorching hot.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-xs uppercase tracking-[0.22em] font-bold text-cheddar mb-3">Kitchen Hours</h4>
+          <ul class="space-y-1.5 text-sm text-mist">
+            <li>Mon – Thu: 11:30 AM – 1:00 AM</li>
+            <li>Fri – Sun: 11:30 AM – 3:00 AM</li>
+            <li class="text-flame font-semibold">Express Late-Night Delivery Available</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-xs uppercase tracking-[0.22em] font-bold text-cheddar mb-3">Hotline &amp; Location</h4>
+          <ul class="space-y-1.5 text-sm text-mist">
+            <li>42 Flame Boulevard, Street Food District</li>
+            <li>+1 (800) 555-FIRE</li>
+            <li>orders@emberandcrunch.com</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-mist/70">
+        <div>&copy; 2026 Ember &amp; Crunch Street Kitchen. All rights reserved.</div>
+        <div class="text-cheddar font-semibold uppercase tracking-widest">Smashed &bull; Charred &bull; Loaded</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =========================================================================
+       PRODUCT QUICK-VIEW MODAL
+       ========================================================================= -->
+  <div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-md">
+    <div class="relative w-full max-w-3xl rounded-3xl overflow-hidden bg-grill ember-border shadow-2xl grid grid-cols-1 md:grid-cols-12 max-h-[92vh] overflow-y-auto">
+      <button id="close-modal-btn" type="button" aria-label="Close Modal" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-charcoal/90 hover:bg-flame text-cream border border-cheddar/30 flex items-center justify-center transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="md:col-span-6 relative min-h-[260px] bg-charcoal">
+        <img id="modal-img" src="" alt="" class="w-full h-full object-cover" />
+        <div class="absolute inset-0 photo-scrim md:hidden"></div>
+      </div>
+
+      <div class="md:col-span-6 p-6 sm:p-8 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="modal-cat" class="text-[11px] uppercase tracking-[0.22em] font-bold text-flame"></span>
+            <span id="modal-heat" class="text-xs font-bold text-cheddar"></span>
+          </div>
+          <h3 id="modal-title" class="font-impact text-4xl text-cream tracking-wide mt-2 leading-none"></h3>
+          <div id="modal-price" class="font-impact text-3xl text-cheddar mt-2"></div>
+          <p id="modal-desc" class="mt-3 text-sm text-mist leading-relaxed"></p>
+
+          <div class="mt-5 p-4 rounded-2xl bg-charcoal border border-cheddar/15">
+            <div class="text-[10px] uppercase tracking-[0.22em] font-bold text-cheddar mb-2">Loaded Ingredients</div>
+            <div id="modal-ingredients" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+
+        <button id="modal-add-btn" type="button" class="mt-6 w-full py-3.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.2em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95">
+          + Add to Order Bag
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SLIDE-OVER ORDER BAG DRAWER
+       ========================================================================= -->
+  <div id="bag-backdrop" class="fixed inset-0 z-50 hidden bg-black/75 backdrop-blur-sm">
+    <aside id="bag-drawer" class="fixed top-0 right-0 h-full w-full max-w-md bg-grill border-l border-cheddar/25 shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-out">
+      <div class="p-6 border-b border-cheddar/15 flex items-center justify-between">
+        <div>
+          <div class="text-[10px] uppercase tracking-[0.25em] font-bold text-flame">Hot Out Of The Grill</div>
+          <h3 class="font-impact text-3xl text-cream tracking-wide mt-0.5">YOUR ORDER BAG</h3>
+        </div>
+        <button id="close-bag-btn" type="button" aria-label="Close Bag" class="w-9 h-9 rounded-full bg-charcoal border border-cheddar/25 hover:border-cheddar text-cream flex items-center justify-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="bag-items" class="flex-1 overflow-y-auto p-6 space-y-3.5"></div>
+
+      <!-- Checkout Ticket Confirmation View (Hidden until ordered) -->
+      <div id="bag-ticket" class="hidden flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">
+        <div class="w-16 h-16 rounded-full bg-flame/20 border-2 border-flame flex items-center justify-center text-3xl">🔥</div>
+        <h4 class="font-impact text-4xl text-cheddar tracking-wide">ORDER FIRED UP!</h4>
+        <p class="text-sm text-mist">Your order is sizzling on the grill now. Estimated arrival: <strong class="text-cream">22–25 mins</strong>.</p>
+        <div class="px-5 py-2.5 rounded-full bg-charcoal border border-cheddar/40 text-xs uppercase tracking-[0.2em] text-cheddar font-bold">
+          Ticket #<span id="ticket-code" class="text-cream">EC-8824</span>
+        </div>
+        <button id="new-order-btn" type="button" class="mt-2 px-6 py-3 rounded-full bg-flame text-cream text-xs uppercase tracking-wider font-bold">Start Another Order</button>
+      </div>
+
+      <div id="bag-footer" class="p-6 border-t border-cheddar/15 bg-charcoal/90 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs uppercase tracking-[0.2em] text-mist font-semibold">Total</span>
+          <span id="bag-total" class="font-impact text-3xl text-cheddar tracking-wider">$0.00</span>
+        </div>
+        <button id="checkout-btn" type="button" class="w-full py-3.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-cream text-xs uppercase tracking-[0.2em] font-extrabold shadow-lg shadow-flame/30 transition-all active:scale-95">
+          Fire Order Now
+        </button>
+      </div>
+    </aside>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-4 transition-all duration-300">
+    <div class="px-5 py-3 rounded-full bg-grill/95 border border-cheddar/50 shadow-2xl flex items-center gap-2.5 text-xs font-semibold tracking-wider text-cream">
+      <span class="w-2 h-2 rounded-full bg-flame"></span>
+      <span id="toast-msg">Added to bag</span>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       APPLICATION JAVASCRIPT: BURST-OUT FX, PHYSICS ENGINE, SCROLL & CART
+       ========================================================================= -->
+  <script>
+    const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const HAS_FINE_POINTER = window.matchMedia('(pointer: fine)').matches;
+
+    let activeCategory = 'All';
+    let activeStationIdx = 0;
+    let activeAnatomyIdx = 0;
+    let activeModalId = null;
+    let currentHeroBurstType = 'burger';
+    let sfxEnabled = false;
+    let cart = [];
+
+    // -------------------------------------------------------------------------
+    // 1. DATA CATALOGS (PHOTOREALISTIC FAST FOOD PHOTOGRAPHY & ANATOMY DATA)
+    // -------------------------------------------------------------------------
+    const FLAME_STATIONS = [
+      {
+        id: 'double-ember-smash',
+        short: 'Smash Burgers',
+        tag: 'STATION 01 • SMASH GRILL',
+        title: 'Double Ember Smash Burger',
+        price: 12.5,
+        heat: '280°C CAST-IRON SEAR',
+        crunch: 'Crunch Rating: 10/10',
+        burstType: 'burger',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=85',
+        desc: 'Two crispy lacy-edged prime beef patties smashed on sizzling cast iron, blanketed in double melted aged cheddar, caramelized onions, house pickles, and smoky chipotle glaze on toasted brioche.'
+      },
+      {
+        id: 'charcoal-spit-shawarma',
+        short: 'Spit Shawarma',
+        tag: 'STATION 02 • CHARCOAL ROTISSERIE',
+        title: 'Charcoal Spit Chicken Shawarma',
+        price: 10.9,
+        heat: 'LIVE HARDWOOD EMBERS',
+        crunch: 'Crunch Rating: 9.5/10',
+        burstType: 'shawarma',
+        image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=1200&q=85',
+        desc: '24-hour 14-spice marinated chicken shaved hot off the glowing vertical charcoal spit, wrapped tight in blistered saj bread with whipped garlic toum, tangy turnip pickles, and crispy fries inside.'
+      },
+      {
+        id: 'volcano-loaded-fries',
+        short: 'Loaded Fries',
+        tag: 'STATION 03 • VOLCANO FRYER',
+        title: 'Volcano Cheddar Loaded Fries',
+        price: 9.5,
+        heat: 'DOUBLE-FRIED GOLDEN CRISP',
+        crunch: 'Crunch Rating: 10/10',
+        burstType: 'fries',
+        image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=1200&q=85',
+        desc: 'Skin-on double-fried hand-cut fries drenched in molten liquid aged cheddar, crispy smashed beef crumbles, pickled jalapeños, charred scallions, and fiery volcano sriracha crema.'
+      },
+      {
+        id: 'hot-honey-pepperoni',
+        short: 'Wood-Fired Pizza',
+        tag: 'STATION 04 • 450°C STONE DECK',
+        title: 'Hot Honey Pepperoni Pizza',
+        price: 16.5,
+        heat: '450°C VOLCANIC STONE',
+        crunch: 'Crunch Rating: 9.8/10',
+        burstType: 'pizza',
+        image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=85',
+        desc: '48-hour fermented leopard-spotted sourdough topped with crushed San Marzano tomatoes, fior di latte mozzarella, cupping crispy pepperoni, and wildflower chili honey.'
+      }
+    ];
+
+    const PRODUCTS = [
+      {
+        id: 'double-ember-smash',
+        name: 'Double Ember Smash Burger',
+        category: 'Burgers',
+        price: 12.5,
+        badge: 'Best Seller',
+        heat: '🌶️ Medium',
+        burstType: 'burger',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=85',
+        desc: 'Double cast-iron smashed prime beef, molten aged cheddar, smoky chipotle ember glaze, and crisp pickles on butter-toasted brioche.',
+        ingredients: ['Double Prime Chuck', 'Aged Sharp Cheddar', 'Smoky Chipotle Glaze', 'Caramelized Onions', 'Toasted Brioche']
+      },
+      {
+        id: 'crispy-nashville-bird',
+        name: 'Hot Crunch Nashville Burger',
+        category: 'Burgers',
+        price: 11.8,
+        badge: 'Extra Crispy',
+        heat: '🌶️🌶️ Spicy',
+        burstType: 'burger',
+        image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=85',
+        desc: 'Buttermilk-brined chicken thigh dipped in cayenne chili oil, stacked with tangy lime slaw, garlic pickles, and ranch drizzle.',
+        ingredients: ['Buttermilk Thigh', 'Cayenne Chili Oil', 'Crunchy Lime Slaw', 'Dill Pickles', 'Brioche Bun']
+      },
+      {
+        id: 'charcoal-spit-shawarma',
+        name: 'Charcoal Spit Chicken Shawarma',
+        category: 'Shawarmas',
+        price: 10.9,
+        badge: 'Charcoal Fired',
+        heat: '🌶️ Mild',
+        burstType: 'shawarma',
+        image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=900&q=85',
+        desc: 'Shaved live-charcoal rotisserie chicken rolled in grilled saj flatbread with whipped garlic toum, pomegranate molasses, and fries.',
+        ingredients: ['14-Spice Rotisserie Chicken', 'Whipped Garlic Toum', 'Pink Turnip Pickles', 'Crispy Fries', 'Blistered Saj Bread']
+      },
+      {
+        id: 'smoky-beef-shawarma',
+        name: 'Loaded Beef & Tahini Shawarma',
+        category: 'Shawarmas',
+        price: 12.2,
+        badge: 'Chef Pick',
+        heat: '🌶️ Medium',
+        burstType: 'shawarma',
+        image: 'https://images.unsplash.com/photo-1561651823-34feb02250e4?auto=format&fit=crop&w=900&q=85',
+        desc: 'Char-kissed spiced beef strips, roasted sesame tahini, sumac-tossed red onions, charred tomatoes, and crispy parsley wrap.',
+        ingredients: ['Charred Spiced Beef', 'Roasted Sesame Tahini', 'Sumac Red Onions', 'Charred Tomato', 'Grilled Saj']
+      },
+      {
+        id: 'volcano-loaded-fries',
+        name: 'Volcano Cheddar Loaded Fries',
+        category: 'Loaded Fries',
+        price: 9.5,
+        badge: 'Fan Favorite',
+        heat: '🌶️🌶️ Spicy',
+        burstType: 'fries',
+        image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85',
+        desc: 'Double-fried golden fries buried under molten cheddar, smashed beef bits, fiery jalapeños, and volcano sriracha drizzle.',
+        ingredients: ['Double-Fried Potatoes', 'Liquid Aged Cheddar', 'Crispy Beef Crumbles', 'Pickled Jalapeños', 'Volcano Sriracha']
+      },
+      {
+        id: 'shawarma-fries-bowl',
+        name: 'Garlic Toum Shawarma Fries',
+        category: 'Loaded Fries',
+        price: 10.4,
+        badge: 'Loaded',
+        heat: '🌶️ Mild',
+        burstType: 'fries',
+        image: 'https://images.unsplash.com/photo-1585109649139-366815a0d713?auto=format&fit=crop&w=900&q=85',
+        desc: 'Crispy seasoned fries crowned with shaved charcoal shawarma chicken, whipped garlic toum, chili dust, and fresh herbs.',
+        ingredients: ['Spiced Skin-On Fries', 'Charcoal Chicken', 'Whipped Garlic Toum', 'Sumac & Chili Dust', 'Fresh Parsley']
+      },
+      {
+        id: 'hot-honey-pepperoni',
+        name: 'Hot Honey Pepperoni Pizza',
+        category: 'Pizzas',
+        price: 16.5,
+        badge: 'Wood-Fired',
+        heat: '🌶️🌶️ Sweet Heat',
+        burstType: 'pizza',
+        image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85',
+        desc: 'Blistered 48h sourdough crust with San Marzano tomato sauce, fior di latte, charred pepperoni cups, and chili honey.',
+        ingredients: ['48h Sourdough', 'San Marzano Sauce', 'Fior di Latte', 'Crispy Pepperoni Cups', 'Wildflower Chili Honey']
+      },
+      {
+        id: 'smoky-bbq-chicken-pizza',
+        name: 'Flame BBQ & Cheddar Pizza',
+        category: 'Pizzas',
+        price: 15.9,
+        badge: 'Smoky',
+        heat: '🌶️ Mild',
+        burstType: 'pizza',
+        image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=900&q=85',
+        desc: 'Char-grilled chicken, smoky hickory BBQ base, red onions, smoked mozzarella, cheddar melt, and fresh cilantro finish.',
+        ingredients: ['Wood-Fired Crust', 'Hickory BBQ Base', 'Char-Grilled Chicken', 'Smoked Mozzarella', 'Red Onion & Cilantro']
+      }
+    ];
+
+    const ANATOMY_ITEMS = [
+      {
+        id: 'double-ember-smash',
+        short: 'Smash Burger',
+        catTag: '01 • SMASH BURGER ANATOMY',
+        title: 'Double Ember Smash Burger',
+        price: 12.5,
+        burstType: 'burger',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=85',
+        desc: 'Starts stacked and scorching hot—scroll to peel apart every crispy, molten layer from toasted sesame brioche to cast-iron sear.',
+        ingredients: [
+          { icon: '🍞', name: 'Toasted Brioche', note: 'Butter-seared pillowy crown', x: -150, y: -118 },
+          { icon: '🧀', name: 'Double Aged Cheddar', note: 'Torched until molten', x: 150, y: -112 },
+          { icon: '🥩', name: 'Lacy Smash Patties', note: '280°C cast-iron Maillard crust', x: -165, y: 18 },
+          { icon: '🔥', name: 'Volcano Chipotle Glaze', note: 'Smoky-sweet ember kick', x: 162, y: 24 },
+          { icon: '🥒', name: 'House Dill Pickles', note: 'Crisp brined crunch', x: 0, y: 148 }
+        ]
+      },
+      {
+        id: 'hot-honey-pepperoni',
+        short: 'Wood-Fired Pizza',
+        catTag: '02 • WOOD-FIRED PIZZA ANATOMY',
+        title: 'Hot Honey Pepperoni Pizza',
+        price: 16.5,
+        burstType: 'pizza',
+        image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85',
+        desc: 'Fired at 450°C on volcanic stone—scroll to burst open its blistered 48-hour sourdough base, cupping pepperoni, and wildflower chili honey.',
+        ingredients: [
+          { icon: '🍕', name: '48h Sourdough Crust', note: 'Leopard-spotted airy crunch', x: -152, y: -116 },
+          { icon: '🍅', name: 'San Marzano Crushed', note: 'Sweet Italian plum tomatoes', x: 152, y: -110 },
+          { icon: '🧀', name: 'Fior di Latte Melt', note: 'Creamy stretched mozzarella', x: -162, y: 22 },
+          { icon: '🥓', name: 'Cupping Pepperoni', note: 'Charred crisp edges', x: 160, y: 22 },
+          { icon: '🍯', name: 'Wildflower Chili Honey', note: 'Sweet-heat finishing drizzle', x: 0, y: 148 }
+        ]
+      },
+      {
+        id: 'volcano-loaded-fries',
+        short: 'Loaded Fries',
+        catTag: '03 • LOADED FRIES ANATOMY',
+        title: 'Volcano Cheddar Loaded Fries',
+        price: 9.5,
+        burstType: 'fries',
+        image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85',
+        desc: 'Double-fried golden crunch buried in molten cheese—scroll to separate every smoky, spicy topping exploding out of the basket.',
+        ingredients: [
+          { icon: '🍟', name: 'Double-Fried Cut', note: 'Extra-crisp golden potato', x: -150, y: -116 },
+          { icon: '🧀', name: 'Liquid Aged Cheddar', note: 'Velvety hot cheese cascade', x: 150, y: -110 },
+          { icon: '🥩', name: 'Smashed Beef Bits', note: 'Charred savory crumbles', x: -162, y: 22 },
+          { icon: '🌶️', name: 'Pickled Jalapeños', note: 'Bright zesty heat', x: 160, y: 24 },
+          { icon: '🌋', name: 'Volcano Sriracha', note: 'Signature fiery crema', x: 0, y: 148 }
+        ]
+      },
+      {
+        id: 'charcoal-spit-shawarma',
+        short: 'Charcoal Shawarma',
+        catTag: '04 • CHARCOAL SHAWARMA ANATOMY',
+        title: 'Charcoal Spit Chicken Shawarma',
+        price: 10.9,
+        burstType: 'shawarma',
+        image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=900&q=85',
+        desc: 'Tightly rolled and iron-pressed over live embers—scroll to unwrap the 24-hour spiced rotisserie chicken, garlic toum, and crispy saj.',
+        ingredients: [
+          { icon: '🫓', name: 'Blistered Saj Bread', note: 'Thin iron-toasted wrap', x: -150, y: -116 },
+          { icon: '🍗', name: '14-Spice Spit Chicken', note: 'Shaved over live charcoal', x: 150, y: -110 },
+          { icon: '🧄', name: 'Whipped Garlic Toum', note: 'Cloud-light lemon garlic', x: -162, y: 22 },
+          { icon: '🍟', name: 'Tucked Crispy Fries', note: 'Crunch inside every bite', x: 160, y: 22 },
+          { icon: '🥗', name: 'Pink Turnip Pickles', note: 'Tangy Levantine snap', x: 0, y: 148 }
+        ]
+      }
+    ];
+
+    const SAUCES = [
+      { id: 'sauce-volcano', name: 'Volcano Sriracha Mayo', heat: '🌶️🌶️🌶️ Hot', color: '#e62e1b', desc: 'Roasted red chili, smoked paprika, and tangy lime crema.' },
+      { id: 'sauce-chipotle', name: 'Smoky Chipotle Ember', heat: '🌶️🌶️ Medium', color: '#ff4d00', desc: 'Fire-charred chipotle adobo whipped with brown sugar & garlic.' },
+      { id: 'sauce-toum', name: 'Whipped Garlic Toum', heat: '🌶️ Mild', color: '#fff8f0', desc: 'Fluffy, punchy Levantine garlic emulsion with fresh lemon zest.' },
+      { id: 'sauce-cheddar', name: 'Liquid Aged Cheddar', heat: '🧀 Rich', color: '#ffb800', desc: 'Sharp 12-month cheddar melted silky smooth for heavy dunking.' },
+      { id: 'sauce-honey', name: 'Wildflower Chili Honey', heat: '🌶️🌶️ Sweet Heat', color: '#f59e0b', desc: 'Raw golden wildflower honey infused with crushed Calabrian chilies.' }
+    ];
+
+    const BRANCHES = [
+      {
+        name: 'Downtown Flame Flagship',
+        short: 'Downtown',
+        address: '42 Flame Boulevard, Street Food District',
+        hours: '11:30 AM – 3:00 AM',
+        pickup: '12–15 Minutes'
+      },
+      {
+        name: 'Westside Grill & Pit',
+        short: 'Westside',
+        address: '118 Ember Avenue, Night Market Quarter',
+        hours: '12:00 PM – 2:30 AM',
+        pickup: '10–14 Minutes'
+      },
+      {
+        name: 'Campus Late-Night Express',
+        short: 'Campus Hub',
+        address: '705 Crunch Lane, University Plaza',
+        hours: '11:00 AM – 4:00 AM',
+        pickup: '8–12 Minutes'
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 2. WEB AUDIO POP / SIZZLE SFX
+    // -------------------------------------------------------------------------
+    let sfxCtx = null;
+    function playPopSfx(freq = 480) {
+      if (!sfxEnabled) return;
+      try {
+        if (!sfxCtx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (!Ctx) return;
+          sfxCtx = new Ctx();
+        }
+        if (sfxCtx.state === 'suspended') sfxCtx.resume();
+        const now = sfxCtx.currentTime;
+        const osc = sfxCtx.createOscillator();
+        const gain = sfxCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.65, now + 0.08);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+        osc.connect(gain);
+        gain.connect(sfxCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } catch (err) {
+        // Ignore browser audio policy errors
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. SIZZLE SPARKLE MOUSE TRAIL & PRODUCT BURST-OUT EXPLOSION ENGINE
+    // -------------------------------------------------------------------------
+    const fxParticles = [];
+    const BURST_PROFILES = {
+      burger: { colors: ['#ff4d00', '#ffb800', '#f7d08a', '#e62e1b'], emojis: ['🍔', '🧀', '🔥'] },
+      pizza: { colors: ['#e62e1b', '#ffb800', '#ff4d00', '#fff8f0'], emojis: ['🍕', '🌶️', '🔥'] },
+      fries: { colors: ['#ffb800', '#ff4d00', '#f7d08a', '#e62e1b'], emojis: ['🍟', '🧀', '⚡'] },
+      shawarma: { colors: ['#f7d08a', '#ff4d00', '#ffb800', '#22c55e'], emojis: ['🌯', '🔥', '🧄'] }
+    };
+
+    function spawnBurstExplosion(x, y, type = 'burger', scale = 1) {
+      if (REDUCED_MOTION) return;
+      const profile = BURST_PROFILES[type] || BURST_PROFILES.burger;
+      const sparkCount = Math.round(18 * scale);
+
+      for (let i = 0; i < sparkCount; i++) {
+        const ang = (Math.PI * 2 * i) / sparkCount + (Math.random() - 0.5) * 0.4;
+        const spd = (2.4 + Math.random() * 5.2) * scale;
+        fxParticles.push({
+          x,
+          y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 1.5,
+          size: 2.5 + Math.random() * 3.5,
+          alpha: 1,
+          decay: 0.022 + Math.random() * 0.015,
+          color: profile.colors[Math.floor(Math.random() * profile.colors.length)],
+          kind: Math.random() > 0.45 ? 'star' : 'dot',
+          rot: Math.random() * Math.PI,
+          gravity: 0.14
+        });
+      }
+
+      const iconCount = Math.max(2, Math.round(4 * scale));
+      for (let i = 0; i < iconCount; i++) {
+        const ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.1;
+        const spd = (3.0 + Math.random() * 4.0) * scale;
+        fxParticles.push({
+          x,
+          y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 1.2,
+          size: 16 + Math.random() * 6,
+          alpha: 1,
+          decay: 0.017 + Math.random() * 0.008,
+          emoji: profile.emojis[Math.floor(Math.random() * profile.emojis.length)],
+          kind: 'emoji',
+          rot: (Math.random() - 0.5) * 0.4,
+          vrot: (Math.random() - 0.5) * 0.09,
+          gravity: 0.18
+        });
+      }
+
+      if (fxParticles.length > 220) {
+        fxParticles.splice(0, fxParticles.length - 220);
+      }
+    }
+
+    window.triggerProductBurst = function (e, type, cardEl) {
+      if (e) e.stopPropagation();
+      let cx = window.innerWidth / 2;
+      let cy = window.innerHeight / 2;
+      if (cardEl) {
+        const rect = cardEl.getBoundingClientRect();
+        cx = rect.left + rect.width / 2;
+        cy = rect.top + rect.height / 2;
+        cardEl.classList.remove('is-bursting');
+        void cardEl.offsetWidth;
+        cardEl.classList.add('is-bursting');
+        setTimeout(() => cardEl.classList.remove('is-bursting'), 680);
+      } else if (e && e.clientX) {
+        cx = e.clientX;
+        cy = e.clientY;
+      }
+      spawnBurstExplosion(cx, cy, type || 'burger', 1.15);
+      playPopSfx(460);
+    };
+
+    window.triggerHeroFlavorBurst = function (el) {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      el.classList.remove('is-bursting');
+      void el.offsetWidth;
+      el.classList.add('is-bursting');
+      setTimeout(() => el.classList.remove('is-bursting'), 680);
+      spawnBurstExplosion(cx, cy, currentHeroBurstType || 'burger', 1.35);
+      playPopSfx(520);
+    };
+
+    // -------------------------------------------------------------------------
+    // 3A. HERO ROTATING CIRCULAR ORBIT WITH 12 O'CLOCK CENTER SWAP QUEUE
+    // -------------------------------------------------------------------------
+    function initHeroOrbitCarousel() {
+      const container = document.getElementById('hero-orbit-container');
+      const ring = document.getElementById('hero-orbit-ring');
+      const satLayer = document.getElementById('hero-orbit-satellites');
+      const centerMedallion = document.getElementById('hero-main-medallion');
+      const centerImg = document.getElementById('hero-center-img');
+      if (!container || !satLayer || !centerImg) return;
+
+      let centerItem = {
+        label: 'Smash Burger',
+        short: 'Burger',
+        burstType: 'burger',
+        border: 'border-cheddar/70',
+        image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85',
+        fallback: 'https://placehold.co/400x400/191310/ff4d00?text=Burger'
+      };
+
+      const queueItems = [
+        {
+          label: 'Hot Honey Pizza',
+          short: 'Pizza',
+          burstType: 'pizza',
+          border: 'border-cheddar/70',
+          image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=900&q=85',
+          fallback: 'https://placehold.co/400x400/191310/e62e1b?text=Pizza'
+        },
+        {
+          label: 'Spit Shawarma',
+          short: 'Wrap',
+          burstType: 'shawarma',
+          border: 'border-brioche/70',
+          image: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?auto=format&fit=crop&w=900&q=85',
+          fallback: 'https://placehold.co/400x400/191310/f7d08a?text=Wrap'
+        },
+        {
+          label: 'Loaded Fries',
+          short: 'Fries',
+          burstType: 'fries',
+          border: 'border-flame/80',
+          image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=900&q=85',
+          fallback: 'https://placehold.co/400x400/191310/ffb800?text=Fries'
+        }
+      ];
+
+      // Evenly spaced 120 deg apart, starting in the familiar balanced positions around the ring
+      const slotOffsets = [45, 165, 285];
+      let orbitDeg = 0;
+      let isHoveringStage = false;
+
+      container.addEventListener('pointerenter', () => { isHoveringStage = true; });
+      container.addEventListener('pointerleave', () => { isHoveringStage = false; });
+
+      // Build the 3 orbiting queue cards matching the exact previous card size and style
+      satLayer.innerHTML = queueItems
+        .map(
+          (item, i) => `
+          <button
+            id="hero-sat-${i}"
+            type="button"
+            class="product-card pointer-events-auto absolute top-1/2 left-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 ${item.border} bg-grill shadow-2xl cursor-pointer transition-shadow hover:shadow-flame/40"
+            title="Reaches 12 o'clock to swap into center"
+          >
+            <img
+              id="hero-sat-img-${i}"
+              src="${item.image}"
+              alt="${item.label}"
+              class="w-full h-full object-cover"
+              onerror="this.onerror=null; this.src='${item.fallback}';"
+            />
+            <span id="hero-sat-label-${i}" class="absolute bottom-1 inset-x-1 py-0.5 rounded-md bg-charcoal/85 text-[9px] uppercase tracking-wider font-extrabold text-cheddar text-center">${item.short}</span>
+          </button>
+        `
+        )
+        .join('');
+
+      function swapSlotWithCenter(slotIdx, fromClick = false) {
+        const incoming = queueItems[slotIdx];
+        const outgoing = centerItem;
+        if (!incoming || !outgoing) return;
+
+        // Swap center item with the orbiting queue slot
+        centerItem = incoming;
+        queueItems[slotIdx] = outgoing;
+        currentHeroBurstType = centerItem.burstType;
+
+        // Update Center Medallion image with smooth pop animation
+        centerImg.src = centerItem.image;
+        centerImg.alt = centerItem.label;
+        centerImg.onerror = function () { this.onerror = null; this.src = centerItem.fallback; };
+
+        if (centerMedallion) {
+          centerMedallion.classList.remove('hero-swap-pop');
+          void centerMedallion.offsetWidth;
+          centerMedallion.classList.add('hero-swap-pop');
+        }
+
+        // Update the orbiting slot with the outgoing center dish
+        const satBtn = document.getElementById(`hero-sat-${slotIdx}`);
+        const satImg = document.getElementById(`hero-sat-img-${slotIdx}`);
+        const satLbl = document.getElementById(`hero-sat-label-${slotIdx}`);
+        if (satImg) {
+          satImg.src = outgoing.image;
+          satImg.alt = outgoing.label;
+          satImg.onerror = function () { this.onerror = null; this.src = outgoing.fallback; };
+        }
+        if (satLbl) satLbl.textContent = outgoing.short;
+
+        const cRect = container.getBoundingClientRect();
+        if (cRect.top < window.innerHeight && cRect.bottom > 0) {
+          const gateX = cRect.left + cRect.width / 2;
+          const gateY = fromClick && satBtn ? satBtn.getBoundingClientRect().top + satBtn.offsetHeight / 2 : cRect.top + 8;
+          spawnBurstExplosion(gateX, gateY, centerItem.burstType, fromClick ? 1.15 : 0.8);
+          if (fromClick) playPopSfx(500);
+        }
+      }
+
+      // Allow instant manual swap when clicking any orbiting satellite
+      queueItems.forEach((_, i) => {
+        const btn = document.getElementById(`hero-sat-${i}`);
+        if (btn) {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            swapSlotWithCenter(i, true);
+          });
+        }
+      });
+
+      const prevAngles = slotOffsets.slice();
+      let lastTs = performance.now();
+
+      function tickOrbit(now) {
+        const dt = Math.min(0.05, (now - lastTs) / 1000);
+        lastTs = now;
+
+        const radius = (container.offsetWidth || 420) / 2;
+        const speedDegPerSec = REDUCED_MOTION ? 0 : isHoveringStage ? 10 : 28;
+        orbitDeg = (orbitDeg + speedDegPerSec * dt) % 360;
+
+        if (ring) {
+          ring.style.transform = `rotate(${orbitDeg.toFixed(2)}deg)`;
+        }
+
+        for (let i = 0; i < queueItems.length; i++) {
+          const angle = (slotOffsets[i] + orbitDeg) % 360;
+          const prev = prevAngles[i];
+
+          // Detect crossing 12 o'clock (360 -> 0 clockwise)
+          if (!REDUCED_MOTION && prev > 270 && angle < 90) {
+            swapSlotWithCenter(i, false);
+          }
+          prevAngles[i] = angle;
+
+          const satEl = document.getElementById(`hero-sat-${i}`);
+          if (satEl) {
+            const rad = (angle * Math.PI) / 180;
+            const x = Math.sin(rad) * radius;
+            const y = -Math.cos(rad) * radius;
+            const distFrom12 = Math.min(angle, 360 - angle);
+            const scaleBoost = distFrom12 < 35 ? 1 + (1 - distFrom12 / 35) * 0.12 : 1;
+            satEl.style.transform = `translate3d(calc(-50% + ${x.toFixed(1)}px), calc(-50% + ${y.toFixed(1)}px), 0) scale(${scaleBoost.toFixed(3)})`;
+          }
+        }
+
+        requestAnimationFrame(tickOrbit);
+      }
+
+      requestAnimationFrame(tickOrbit);
+    }
+
+    window.triggerCurrentStationBurst = function (e) {
+      const st = FLAME_STATIONS[activeStationIdx] || FLAME_STATIONS[0];
+      const cx = e && e.clientX ? e.clientX : window.innerWidth / 2;
+      const cy = e && e.clientY ? e.clientY : window.innerHeight / 2;
+      spawnBurstExplosion(cx, cy, st.burstType, 1.25);
+      playPopSfx(500);
+    };
+
+    function initFxCanvasAndMouseTrail() {
+      const canvas = document.getElementById('fx-canvas');
+      const halo = document.getElementById('pointer-halo');
+      if (!canvas || REDUCED_MOTION) return;
+
+      const ctx = canvas.getContext('2d');
+      let w = 0, h = 0;
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let lastX = -100, lastY = -100;
+      const trailColors = ['#ffb800', '#ff4d00', '#fff8f0', '#e62e1b'];
+
+      if (HAS_FINE_POINTER) {
+        window.addEventListener('pointermove', (e) => {
+          if (halo) {
+            halo.style.opacity = '1';
+            halo.style.transform = `translate3d(${e.clientX - 140}px, ${e.clientY - 140}px, 0)`;
+          }
+          const dist = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+          if (dist > 8) {
+            const count = dist > 30 ? 3 : 1;
+            for (let i = 0; i < count; i++) {
+              fxParticles.push({
+                x: e.clientX + (Math.random() - 0.5) * 10,
+                y: e.clientY + (Math.random() - 0.5) * 10,
+                vx: (Math.random() - 0.5) * 1.1,
+                vy: -0.6 - Math.random() * 1.3,
+                size: 1.8 + Math.random() * 2.6,
+                alpha: 0.92,
+                decay: 0.028 + Math.random() * 0.018,
+                color: trailColors[Math.floor(Math.random() * trailColors.length)],
+                kind: Math.random() > 0.4 ? 'star' : 'dot',
+                rot: Math.random() * Math.PI,
+                gravity: -0.02
+              });
+            }
+            lastX = e.clientX;
+            lastY = e.clientY;
+          }
+        });
+
+        document.addEventListener('mouseleave', () => {
+          if (halo) halo.style.opacity = '0';
+        });
+      }
+
+      function drawStar(x, y, r, rot, color, alpha) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rot);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        for (let i = 0; i < 4; i++) {
+          const a = (i * Math.PI) / 2;
+          ctx.lineTo(Math.cos(a) * r * 1.9, Math.sin(a) * r * 1.9);
+          ctx.lineTo(Math.cos(a + Math.PI / 4) * r * 0.42, Math.sin(a + Math.PI / 4) * r * 0.42);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function tickFx() {
+        ctx.clearRect(0, 0, w, h);
+        for (let i = fxParticles.length - 1; i >= 0; i--) {
+          const p = fxParticles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.985;
+          p.alpha -= p.decay;
+          p.rot += p.vrot || 0.06;
+
+          if (p.alpha <= 0) {
+            fxParticles.splice(i, 1);
+            continue;
+          }
+
+          if (p.kind === 'emoji') {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.globalAlpha = Math.max(0, p.alpha);
+            ctx.font = `${Math.round(p.size)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.emoji, 0, 0);
+            ctx.restore();
+          } else if (p.kind === 'star') {
+            drawStar(p.x, p.y, p.size, p.rot, p.color, p.alpha);
+          } else {
+            ctx.save();
+            ctx.globalAlpha = p.alpha;
+            ctx.fillStyle = p.color;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * 0.78, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+        requestAnimationFrame(tickFx);
+      }
+      requestAnimationFrame(tickFx);
+    }
+
+    // -------------------------------------------------------------------------
+    // 3B. SCROLL-DRIVEN DISH ANATOMY & INGREDIENT EXPLOSION SHOWCASE
+    // -------------------------------------------------------------------------
+    function initAnatomyShowcase() {
+      const tabsEl = document.getElementById('anatomy-tabs');
+      const nodesLayer = document.getElementById('anatomy-nodes-layer');
+      const beamsSvg = document.getElementById('anatomy-beams-svg');
+      const listEl = document.getElementById('anatomy-ingredient-list');
+      const orderBtn = document.getElementById('anatomy-order-btn');
+      const mobileSlider = document.getElementById('anatomy-mobile-slider');
+      if (!tabsEl || !nodesLayer || !listEl) return;
+
+      tabsEl.innerHTML = ANATOMY_ITEMS.map(
+        (item, idx) => `
+        <button
+          id="anatomy-tab-${idx}"
+          type="button"
+          onclick="selectAnatomyItem(${idx})"
+          class="relative overflow-hidden p-3.5 rounded-2xl border text-left transition-all ${
+            idx === 0
+              ? 'bg-charcoal border-cheddar shadow-lg shadow-flame/15 opacity-100'
+              : 'bg-charcoal/55 border-cheddar/15 hover:border-cheddar/50 opacity-75 hover:opacity-100'
+          }"
+        >
+          <div class="text-[10px] uppercase tracking-wider font-bold text-flame">0${idx + 1}</div>
+          <div class="font-display text-sm font-bold text-cream mt-0.5 truncate">${item.short}</div>
+          <div class="anatomy-progress-track">
+            <div id="anatomy-progress-${idx}" class="anatomy-progress-fill" style="width: ${idx === 0 ? '100%' : '0%'};"></div>
+          </div>
+        </button>
+      `
+      ).join('');
+
+      window.renderAnatomyItem = function (idx) {
+        activeAnatomyIdx = idx;
+        const item = ANATOMY_ITEMS[idx];
+        if (!item) return;
+
+        const dishImg = document.getElementById('anatomy-dish-img');
+        if (dishImg) {
+          dishImg.src = item.image;
+          dishImg.alt = item.title;
+        }
+        const catTag = document.getElementById('anatomy-cat-tag');
+        const titleEl = document.getElementById('anatomy-title');
+        const priceEl = document.getElementById('anatomy-price');
+        const descEl = document.getElementById('anatomy-desc');
+        const counterEl = document.getElementById('anatomy-counter');
+        if (catTag) catTag.textContent = item.catTag;
+        if (titleEl) titleEl.textContent = item.title;
+        if (priceEl) priceEl.textContent = `$${item.price.toFixed(2)}`;
+        if (descEl) descEl.textContent = item.desc;
+        if (counterEl) counterEl.textContent = `0${idx + 1} / 0${ANATOMY_ITEMS.length}`;
+
+        ANATOMY_ITEMS.forEach((_, i) => {
+          const btn = document.getElementById(`anatomy-tab-${i}`);
+          if (!btn) return;
+          if (i === idx) {
+            btn.classList.add('bg-charcoal', 'border-cheddar', 'shadow-lg', 'opacity-100');
+            btn.classList.remove('bg-charcoal/55', 'border-cheddar/15', 'opacity-75');
+          } else {
+            btn.classList.remove('bg-charcoal', 'border-cheddar', 'shadow-lg', 'opacity-100');
+            btn.classList.add('bg-charcoal/55', 'border-cheddar/15', 'opacity-75');
+          }
+        });
+
+        nodesLayer.innerHTML = item.ingredients
+          .map(
+            (ing, i) => `
+            <div
+              id="anatomy-node-${i}"
+              class="anatomy-node px-3 py-2 rounded-2xl bg-grill/95 border border-cheddar/60 shadow-xl shadow-black/70 flex items-center gap-2 whitespace-nowrap"
+              style="opacity: 0; transform: translate(-50%, -50%) scale(0.45);"
+            >
+              <span class="text-base leading-none">${ing.icon}</span>
+              <div>
+                <div class="text-[11px] font-bold text-cream leading-none">${ing.name}</div>
+                <div class="text-[9px] text-cheddar mt-0.5 leading-none">${ing.note}</div>
+              </div>
+            </div>
+          `
+          )
+          .join('');
+
+        if (beamsSvg) {
+          beamsSvg.innerHTML = item.ingredients
+            .map(
+              (_, i) => `
+              <line
+                id="anatomy-beam-${i}"
+                x1="250" y1="220" x2="250" y2="220"
+                stroke="#ffb800" stroke-opacity="0" stroke-width="1.6" stroke-dasharray="4 4"
+              />
+            `
+            )
+            .join('');
+        }
+
+        listEl.innerHTML = item.ingredients
+          .map(
+            (ing, i) => `
+            <div
+              id="anatomy-card-${i}"
+              class="p-3 rounded-2xl bg-grill/70 border border-cheddar/15 transition-all duration-300 opacity-50"
+            >
+              <div class="flex items-center gap-2">
+                <span class="text-base">${ing.icon}</span>
+                <span class="text-xs font-bold text-cream">${ing.name}</span>
+              </div>
+              <div class="text-[11px] text-mist mt-1">${ing.note}</div>
+            </div>
+          `
+          )
+          .join('');
+      };
+
+      let lastBurstDish = -1;
+      window.applyAnatomyExplosion = function (explodeP, idx = activeAnatomyIdx) {
+        const item = ANATOMY_ITEMS[idx];
+        if (!item) return;
+        const p = Math.min(1, Math.max(0, explodeP));
+
+        const core = document.getElementById('anatomy-dish-core');
+        const coreBadge = document.getElementById('anatomy-core-badge');
+        const phaseLabel = document.getElementById('anatomy-phase-label');
+        const pctLabel = document.getElementById('anatomy-explode-pct');
+
+        if (core) {
+          const coreScale = 1 - p * 0.14;
+          const coreRot = p * 6;
+          core.style.transform = `scale(${coreScale.toFixed(3)}) rotate(${coreRot.toFixed(2)}deg)`;
+        }
+        if (coreBadge) {
+          coreBadge.textContent = p < 0.2 ? 'Combined Form' : p < 0.8 ? 'Bursting Layers' : 'Full Anatomy';
+        }
+        if (phaseLabel) {
+          phaseLabel.textContent = p < 0.2 ? 'Combined Form' : p < 0.8 ? 'Exploding Ingredients' : 'Ingredients Revealed';
+        }
+        if (pctLabel) {
+          pctLabel.textContent = `${Math.round(p * 100)}% Revealed`;
+        }
+
+        if (p > 0.55 && lastBurstDish !== idx && core) {
+          lastBurstDish = idx;
+          const r = core.getBoundingClientRect();
+          if (r.top < window.innerHeight && r.bottom > 0) {
+            spawnBurstExplosion(r.left + r.width / 2, r.top + r.height / 2, item.burstType, 0.9);
+          }
+        } else if (p < 0.15 && lastBurstDish === idx) {
+          lastBurstDish = -1;
+        }
+
+        const isCompact = window.innerWidth < 640;
+        const spread = isCompact ? 0.66 : 0.94;
+
+        item.ingredients.forEach((ing, i) => {
+          const staggerStart = i * 0.1;
+          const localP = Math.min(1, Math.max(0, (p - staggerStart) / (1 - staggerStart * 0.7)));
+          const eased = 1 - Math.pow(1 - localP, 3);
+
+          const node = document.getElementById(`anatomy-node-${i}`);
+          if (node) {
+            const tx = ing.x * spread * eased;
+            const ty = ing.y * spread * eased;
+            const sc = 0.45 + 0.55 * eased;
+            node.style.opacity = eased.toFixed(3);
+            node.style.transform = `translate(calc(-50% + ${tx.toFixed(1)}px), calc(-50% + ${ty.toFixed(1)}px)) scale(${sc.toFixed(3)})`;
+          }
+
+          const beam = document.getElementById(`anatomy-beam-${i}`);
+          if (beam) {
+            beam.setAttribute('x2', (250 + ing.x * spread * eased).toFixed(1));
+            beam.setAttribute('y2', (220 + ing.y * spread * eased).toFixed(1));
+            beam.setAttribute('stroke-opacity', (eased * 0.6).toFixed(2));
+          }
+
+          const card = document.getElementById(`anatomy-card-${i}`);
+          if (card) {
+            if (localP > 0.45) {
+              card.classList.add('border-cheddar/70', 'bg-grill', 'opacity-100', 'shadow-md');
+              card.classList.remove('border-cheddar/15', 'bg-grill/70', 'opacity-50');
+            } else {
+              card.classList.remove('border-cheddar/70', 'bg-grill', 'opacity-100', 'shadow-md');
+              card.classList.add('border-cheddar/15', 'bg-grill/70', 'opacity-50');
+            }
+          }
+        });
+      };
+
+      window.selectAnatomyItem = function (idx) {
+        const sec = document.getElementById('anatomy-showcase');
+        if (sec && window.innerWidth >= 1024 && !REDUCED_MOTION) {
+          const top = sec.getBoundingClientRect().top + window.scrollY;
+          const travel = Math.max(1, sec.offsetHeight - window.innerHeight);
+          const targetP = (idx + 0.62) / ANATOMY_ITEMS.length;
+          window.scrollTo({ top: top + travel * targetP, behavior: 'smooth' });
+          return;
+        }
+        window.renderAnatomyItem(idx);
+        const sliderVal = mobileSlider ? Number(mobileSlider.value) / 100 : 1;
+        window.applyAnatomyExplosion(sliderVal, idx);
+        ANATOMY_ITEMS.forEach((_, i) => {
+          const bar = document.getElementById(`anatomy-progress-${i}`);
+          if (bar) bar.style.width = i === idx ? '100%' : '0%';
+        });
+      };
+
+      window.triggerAnatomyDishBurst = function (e) {
+        const item = ANATOMY_ITEMS[activeAnatomyIdx];
+        if (!item) return;
+        const cx = e && e.clientX ? e.clientX : window.innerWidth / 2;
+        const cy = e && e.clientY ? e.clientY : window.innerHeight / 2;
+        spawnBurstExplosion(cx, cy, item.burstType, 1.25);
+        playPopSfx(500);
+      };
+
+      if (mobileSlider) {
+        mobileSlider.addEventListener('input', (e) => {
+          window.applyAnatomyExplosion(Number(e.target.value) / 100, activeAnatomyIdx);
+        });
+      }
+
+      if (orderBtn) {
+        orderBtn.addEventListener('click', (e) => {
+          const item = ANATOMY_ITEMS[activeAnatomyIdx];
+          if (item) addToBag(item.id, e);
+        });
+      }
+
+      window.renderAnatomyItem(0);
+      window.applyAnatomyExplosion(0, 0);
+    }
+
+    // -------------------------------------------------------------------------
+    // 3C. SIGNATURE SAUCE LAB & STREET KITCHEN BRANCHES / PARTY FORM
+    // -------------------------------------------------------------------------
+    function initSauceBar() {
+      const grid = document.getElementById('sauce-grid');
+      if (!grid) return;
+      grid.innerHTML = SAUCES.map(
+        (s) => `
+        <div class="rounded-3xl bg-grill ember-border p-5 flex flex-col justify-between space-y-4 hover:border-cheddar/60 transition-all hover:-translate-y-1">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="w-9 h-9 rounded-2xl border border-cheddar/30 flex items-center justify-center shadow-inner" style="background: ${s.color}22;">
+                <span class="w-4 h-4 rounded-full" style="background: ${s.color}; box-shadow: 0 0 12px ${s.color};"></span>
+              </span>
+              <span class="text-[10px] uppercase tracking-wider font-bold text-cheddar">${s.heat}</span>
+            </div>
+            <h3 class="font-impact text-2xl tracking-wide text-cream leading-tight">${s.name}</h3>
+            <p class="text-xs text-mist leading-relaxed">${s.desc}</p>
+          </div>
+          <button
+            type="button"
+            onclick="addSauceToBag('${s.id}', event)"
+            class="w-full py-2.5 rounded-full bg-charcoal hover:bg-flame border border-cheddar/30 hover:border-flame text-[11px] uppercase tracking-wider font-bold text-cream transition-all active:scale-95"
+          >
+            + Add Dip ($1.50)
+          </button>
+        </div>
+      `
+      ).join('');
+    }
+
+    window.addSauceToBag = function (sauceId, e) {
+      const s = SAUCES.find((x) => x.id === sauceId);
+      if (!s) return;
+      const existing = cart.find((c) => c.id === s.id);
+      if (existing) existing.qty += 1;
+      else {
+        cart.push({
+          id: s.id,
+          name: `${s.name} Dip`,
+          price: 1.5,
+          image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=300&q=80',
+          qty: 1
+        });
+      }
+      if (e && e.clientX) spawnBurstExplosion(e.clientX, e.clientY, 'fries', 0.85);
+      playPopSfx(540);
+      renderBag();
+      showToast(`Added ${s.name} Dip`);
+    };
+
+    function initBranchesAndPartyForm() {
+      const tabsEl = document.getElementById('branch-tabs');
+      if (tabsEl) {
+        let activeBranchIdx = 0;
+
+        window.selectBranch = function (idx) {
+          activeBranchIdx = idx;
+          const b = BRANCHES[idx];
+          if (!b) return;
+          document.getElementById('branch-name').textContent = b.name;
+          document.getElementById('branch-address').textContent = b.address;
+          document.getElementById('branch-hours').textContent = b.hours;
+          document.getElementById('branch-pickup').textContent = b.pickup;
+
+          tabsEl.innerHTML = BRANCHES.map(
+            (br, i) => `
+            <button
+              type="button"
+              onclick="selectBranch(${i})"
+              class="px-4 py-2 rounded-full text-xs uppercase tracking-wider font-bold border transition-all ${
+                i === activeBranchIdx
+                  ? 'bg-flame border-flame text-cream shadow-md shadow-flame/30'
+                  : 'bg-grill border-cheddar/20 text-mist hover:border-cheddar hover:text-cream'
+              }"
+            >
+              ${br.short}
+            </button>
+          `
+          ).join('');
+        };
+
+        window.selectBranch(0);
+      }
+
+      const partyForm = document.getElementById('party-form');
+      if (partyForm) {
+        partyForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('party-name')?.value.trim() || 'Guest';
+          spawnBurstExplosion(window.innerWidth / 2, window.innerHeight / 2, 'pizza', 1.3);
+          playPopSfx(560);
+          showToast(`Feast quote request sent for ${name}!`);
+          partyForm.reset();
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. PHYSICS-BASED HANGING CAST-IRON GRILL TOOLS (DAMPED PENDULUM)
+    // -------------------------------------------------------------------------
+    function initHangingToolPhysics() {
+      const leftBody = document.getElementById('tool-left-body');
+      const leftCharm = document.getElementById('tool-left-charm');
+      const rightBody = document.getElementById('tool-right-body');
+      const rightCharm = document.getElementById('tool-right-charm');
+      if (!leftBody || !rightBody || REDUCED_MOTION) return;
+
+      let aL = 0, vL = 0, tL = 0, tvL = 0;
+      let aR = 0, vR = 0, tR = 0, tvR = 0;
+      let lastY = window.scrollY;
+      let time = 0;
+
+      function step() {
+        time += 0.02;
+        const curY = window.scrollY;
+        const delta = Math.max(-75, Math.min(75, curY - lastY));
+        lastY = curY;
+
+        vL += delta * 0.036;
+        vR -= delta * 0.032;
+
+        const breezeL = Math.sin(time * 1.05) * 1.8;
+        const breezeR = Math.cos(time * 0.95 + 0.6) * 1.8;
+
+        vL += (breezeL - aL) * 0.038;
+        vL *= 0.91;
+        aL = Math.max(-26, Math.min(26, aL + vL));
+
+        vR += (breezeR - aR) * 0.038;
+        vR *= 0.91;
+        aR = Math.max(-26, Math.min(26, aR + vR));
+
+        tvL += (-aL * 0.9 - tL) * 0.07;
+        tvL *= 0.87;
+        tL = Math.max(-30, Math.min(30, tL + tvL));
+
+        tvR += (-aR * 0.9 - tR) * 0.07;
+        tvR *= 0.87;
+        tR = Math.max(-30, Math.min(30, tR + tvR));
+
+        leftBody.style.transform = `rotate(${aL.toFixed(2)}deg)`;
+        if (leftCharm) leftCharm.style.transform = `rotate(${tL.toFixed(2)}deg)`;
+        rightBody.style.transform = `rotate(${aR.toFixed(2)}deg)`;
+        if (rightCharm) rightCharm.style.transform = `rotate(${tR.toFixed(2)}deg)`;
+
+        requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. INTERACTIVE 2D GRAVITY & COLLISION PHYSICS PIT ("CRUNCH LAB")
+    // -------------------------------------------------------------------------
+    function initCrunchPhysicsPit() {
+      const canvas = document.getElementById('physics-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w = 0, h = 0;
+
+      function resize() {
+        w = canvas.width = canvas.offsetWidth || 640;
+        h = canvas.height = canvas.offsetHeight || 360;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      const ITEMS = [
+        { emoji: '🍔', color: '#ff4d00', label: 'SMASH' },
+        { emoji: '🍕', color: '#e62e1b', label: 'PIZZA' },
+        { emoji: '🍟', color: '#ffb800', label: 'FRIES' },
+        { emoji: '🌯', color: '#f7d08a', label: 'WRAP' },
+        { emoji: '🔥', color: '#ff4d00', label: 'HOT' },
+        { emoji: '🧀', color: '#ffb800', label: 'MELT' }
+      ];
+
+      const orbs = [];
+      let pointer = { x: -999, y: -999, active: false };
+
+      function spawnOrb(x, y) {
+        const item = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+        orbs.push({
+          x: x ?? (60 + Math.random() * Math.max(80, w - 120)),
+          y: y ?? (30 + Math.random() * 80),
+          vx: (Math.random() - 0.5) * 7,
+          vy: -2 - Math.random() * 4,
+          r: 24 + Math.random() * 10,
+          rot: Math.random() * Math.PI * 2,
+          vrot: (Math.random() - 0.5) * 0.08,
+          ...item
+        });
+        if (orbs.length > 22) orbs.shift();
+      }
+
+      // Seed initial orbs
+      for (let i = 0; i < 10; i++) spawnOrb();
+
+      canvas.addEventListener('pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        pointer.x = e.clientX - rect.left;
+        pointer.y = e.clientY - rect.top;
+        pointer.active = true;
+      });
+      canvas.addEventListener('pointerleave', () => { pointer.active = false; });
+      canvas.addEventListener('pointerdown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const px = e.clientX - rect.left;
+        const py = e.clientY - rect.top;
+        spawnOrb(px, py);
+        spawnBurstExplosion(e.clientX, e.clientY, 'fries', 0.85);
+        playPopSfx(440);
+      });
+
+      document.getElementById('physics-drop-btn')?.addEventListener('click', () => {
+        for (let i = 0; i < 6; i++) spawnOrb();
+        playPopSfx(520);
+      });
+
+      document.getElementById('physics-burst-btn')?.addEventListener('click', () => {
+        orbs.forEach((o) => {
+          o.vx += (Math.random() - 0.5) * 16;
+          o.vy = -(10 + Math.random() * 10);
+          o.vrot = (Math.random() - 0.5) * 0.25;
+        });
+        playPopSfx(320);
+      });
+
+      function tick() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Subtle pit floor glow
+        const floorGrad = ctx.createLinearGradient(0, h - 70, 0, h);
+        floorGrad.addColorStop(0, 'rgba(255, 77, 0, 0)');
+        floorGrad.addColorStop(1, 'rgba(255, 77, 0, 0.14)');
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, h - 70, w, 70);
+
+        for (let i = 0; i < orbs.length; i++) {
+          const a = orbs[i];
+          a.vy += 0.38; // Gravity
+          a.vx *= 0.992;
+          a.x += a.vx;
+          a.y += a.vy;
+          a.rot += a.vrot;
+
+          // Pointer repulsion force
+          if (pointer.active) {
+            const dx = a.x - pointer.x;
+            const dy = a.y - pointer.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < a.r + 58 && dist > 0.1) {
+              const force = ((a.r + 58 - dist) / (a.r + 58)) * 2.2;
+              a.vx += (dx / dist) * force;
+              a.vy += (dy / dist) * force;
+              a.vrot += (dx / dist) * 0.03;
+            }
+          }
+
+          // Wall & Floor bounce with restitution
+          if (a.x - a.r < 0) { a.x = a.r; a.vx = Math.abs(a.vx) * 0.78; }
+          if (a.x + a.r > w) { a.x = w - a.r; a.vx = -Math.abs(a.vx) * 0.78; }
+          if (a.y + a.r > h) {
+            a.y = h - a.r;
+            a.vy = -Math.abs(a.vy) * 0.72;
+            a.vx *= 0.95;
+            a.vrot *= 0.92;
+          }
+          if (a.y - a.r < 0) { a.y = a.r; a.vy = Math.abs(a.vy) * 0.75; }
+
+          // Elastic orb-to-orb collision resolution
+          for (let j = i + 1; j < orbs.length; j++) {
+            const b = orbs[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dist = Math.hypot(dx, dy);
+            const minDist = a.r + b.r;
+            if (dist < minDist && dist > 0.01) {
+              const nx = dx / dist;
+              const ny = dy / dist;
+              const overlap = (minDist - dist) * 0.5;
+              a.x -= nx * overlap;
+              a.y -= ny * overlap;
+              b.x += nx * overlap;
+              b.y += ny * overlap;
+
+              const dvx = b.vx - a.vx;
+              const dvy = b.vy - a.vy;
+              const relVel = dvx * nx + dvy * ny;
+              if (relVel < 0) {
+                const impulse = -0.85 * relVel;
+                a.vx -= impulse * nx * 0.5;
+                a.vy -= impulse * ny * 0.5;
+                b.vx += impulse * nx * 0.5;
+                b.vy += impulse * ny * 0.5;
+              }
+            }
+          }
+        }
+
+        // Draw physics orbs
+        orbs.forEach((o) => {
+          ctx.save();
+          ctx.translate(o.x, o.y);
+          ctx.rotate(o.rot);
+
+          ctx.beginPath();
+          ctx.arc(0, 0, o.r, 0, Math.PI * 2);
+          ctx.fillStyle = '#191310';
+          ctx.fill();
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = o.color;
+          ctx.stroke();
+
+          ctx.font = `${Math.round(o.r * 1.05)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(o.emoji, 0, 1);
+          ctx.restore();
+        });
+
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. SCROLL-DRIVEN FLAME LINE STATIONS
+    // -------------------------------------------------------------------------
+    function initFlameLine() {
+      const pillsEl = document.getElementById('station-pills');
+      const baseImg = document.getElementById('station-img-base');
+      const topLayer = document.getElementById('station-top-layer');
+      const topImg = document.getElementById('station-img-top');
+      const orderBtn = document.getElementById('station-order-btn');
+      if (!pillsEl) return;
+
+      pillsEl.innerHTML = FLAME_STATIONS.map(
+        (st, idx) => `
+        <button
+          id="station-pill-${idx}"
+          type="button"
+          onclick="selectFlameStation(${idx})"
+          class="relative overflow-hidden p-3.5 rounded-2xl border text-left transition-all ${
+            idx === 0
+              ? 'bg-charcoal border-cheddar shadow-lg shadow-flame/15 opacity-100'
+              : 'bg-charcoal/55 border-cheddar/15 hover:border-cheddar/50 opacity-75 hover:opacity-100'
+          }"
+        >
+          <div class="text-[10px] uppercase tracking-wider font-bold text-flame">0${idx + 1}</div>
+          <div class="font-display text-sm font-bold text-cream mt-0.5 truncate">${st.short}</div>
+          <div class="station-progress-track">
+            <div id="station-progress-${idx}" class="station-progress-fill" style="width: ${idx === 0 ? '100%' : '0%'};"></div>
+          </div>
+        </button>
+      `
+      ).join('');
+
+      window.applyFlameStation = function (idx, fromScroll = false) {
+        if (idx === activeStationIdx) return;
+        const prev = FLAME_STATIONS[activeStationIdx];
+        const next = FLAME_STATIONS[idx];
+        activeStationIdx = idx;
+
+        if (baseImg) baseImg.src = prev.image;
+        if (topImg && topLayer) {
+          topImg.src = next.image;
+          topImg.alt = next.title;
+          topLayer.classList.remove('is-burst-revealing');
+          void topLayer.offsetWidth;
+          topLayer.classList.add('is-burst-revealing');
+        }
+
+        document.getElementById('station-tag').textContent = next.tag;
+        document.getElementById('station-title').textContent = next.title;
+        document.getElementById('station-price').textContent = `$${next.price.toFixed(2)}`;
+        document.getElementById('station-desc').textContent = next.desc;
+        document.getElementById('station-heat').textContent = next.heat;
+        document.getElementById('station-crunch').textContent = next.crunch;
+        document.getElementById('station-counter').textContent = `0${idx + 1} / 04`;
+
+        FLAME_STATIONS.forEach((_, i) => {
+          const btn = document.getElementById(`station-pill-${i}`);
+          const bar = document.getElementById(`station-progress-${i}`);
+          if (btn) {
+            if (i === idx) {
+              btn.classList.add('bg-charcoal', 'border-cheddar', 'shadow-lg', 'opacity-100');
+              btn.classList.remove('bg-charcoal/55', 'border-cheddar/15', 'opacity-75');
+            } else {
+              btn.classList.remove('bg-charcoal', 'border-cheddar', 'shadow-lg', 'opacity-100');
+              btn.classList.add('bg-charcoal/55', 'border-cheddar/15', 'opacity-75');
+            }
+          }
+          if (!fromScroll && bar) {
+            bar.style.width = i === idx ? '100%' : '0%';
+          }
+        });
+      };
+
+      window.selectFlameStation = function (idx) {
+        const sec = document.getElementById('flame-line');
+        if (sec && window.innerWidth >= 1024 && !REDUCED_MOTION) {
+          const focal = [0.06, 0.36, 0.64, 0.94];
+          const top = sec.getBoundingClientRect().top + window.scrollY;
+          const travel = Math.max(1, sec.offsetHeight - window.innerHeight);
+          window.scrollTo({ top: top + travel * focal[idx], behavior: 'smooth' });
+          return;
+        }
+        window.applyFlameStation(idx, false);
+      };
+
+      if (orderBtn) {
+        orderBtn.addEventListener('click', (e) => {
+          const st = FLAME_STATIONS[activeStationIdx];
+          addToBag(st.id, e);
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. FULL BURST-OUT MENU RENDERING & 3D TILT
+    // -------------------------------------------------------------------------
+    function renderMenu() {
+      const filtersEl = document.getElementById('menu-filters');
+      const gridEl = document.getElementById('menu-grid');
+      if (!filtersEl || !gridEl) return;
+
+      const cats = ['All', 'Burgers', 'Shawarmas', 'Loaded Fries', 'Pizzas'];
+      filtersEl.innerHTML = cats
+        .map(
+          (cat) => `
+          <button
+            type="button"
+            onclick="setCategory('${cat}')"
+            class="px-4 py-2.5 rounded-full text-xs uppercase tracking-[0.16em] font-bold border transition-all ${
+              activeCategory === cat
+                ? 'bg-flame border-flame text-cream shadow-lg shadow-flame/30'
+                : 'bg-grill border-cheddar/20 text-mist hover:border-cheddar hover:text-cream'
+            }"
+          >
+            ${cat}
+          </button>
+        `
+        )
+        .join('');
+
+      const list = activeCategory === 'All' ? PRODUCTS : PRODUCTS.filter((p) => p.category === activeCategory);
+      gridEl.innerHTML = list
+        .map(
+          (p) => `
+          <article
+            class="product-card relative rounded-3xl bg-grill ember-border flex flex-col justify-between group"
+            onmousemove="handleCardTilt(event, this)"
+            onmouseleave="resetCardTilt(this)"
+            onmouseenter="triggerHoverBurst(event, '${p.burstType}', this)"
+          >
+            <div class="flame-sheen rounded-3xl"></div>
+
+            <div>
+              <!-- Burst-Out Photo Frame -->
+              <div class="product-photo-wrap relative h-52 p-3 cursor-pointer" onclick="openProductModal('${p.id}')">
+                <div class="burst-shockwave"></div>
+                <div class="w-full h-full rounded-2xl overflow-hidden bg-charcoal relative shadow-lg">
+                  <img
+                    src="${p.image}"
+                    alt="${p.name}"
+                    class="product-burst-img w-full h-full object-cover"
+                    onerror="this.onerror=null; this.src='https://placehold.co/600x450/191310/ffb800?text=${encodeURIComponent(p.category)}';"
+                  />
+                  <div class="absolute inset-0 photo-scrim pointer-events-none"></div>
+                </div>
+
+                <!-- Burst-Out Floating Chips -->
+                <span class="burst-chip burst-chip-tl absolute top-5 left-5 z-20 px-3 py-1 rounded-full bg-charcoal/90 border border-cheddar/45 text-[10px] uppercase tracking-wider font-extrabold text-cheddar shadow-md">
+                  ${p.badge}
+                </span>
+                <span class="burst-chip burst-chip-tr absolute top-5 right-5 z-20 px-3 py-1 rounded-full bg-flame text-cream text-[11px] font-extrabold shadow-md">
+                  $${p.price.toFixed(2)}
+                </span>
+              </div>
+
+              <div class="px-5 pb-4 pt-1">
+                <div class="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] font-bold">
+                  <span class="text-flame">${p.category}</span>
+                  <span class="text-cheddar/90">${p.heat}</span>
+                </div>
+                <h3 class="font-impact text-2xl tracking-wide text-cream mt-1 leading-tight cursor-pointer hover:text-cheddar transition-colors" onclick="openProductModal('${p.id}')">
+                  ${p.name}
+                </h3>
+                <p class="mt-1.5 text-xs text-mist leading-relaxed line-clamp-2">${p.desc}</p>
+              </div>
+            </div>
+
+            <div class="px-5 pb-5 pt-1 flex items-center gap-2">
+              <button
+                type="button"
+                onclick="triggerProductBurst(event, '${p.burstType}', this.closest('.product-card'))"
+                class="px-3.5 py-2.5 rounded-full bg-charcoal hover:bg-smoke border border-cheddar/30 text-[10px] uppercase tracking-wider font-bold text-cheddar transition-colors"
+                title="Burst Preview"
+              >
+                Burst!
+              </button>
+              <button
+                type="button"
+                onclick="addToBag('${p.id}', event)"
+                class="flex-1 py-2.5 rounded-full bg-gradient-to-r from-flame to-sriracha hover:brightness-110 text-[11px] uppercase tracking-wider font-extrabold text-cream shadow-md shadow-flame/25 transition-all active:scale-95"
+              >
+                + Add to Bag
+              </button>
+            </div>
+          </article>
+        `
+        )
+        .join('');
+    }
+
+    window.setCategory = function (cat) {
+      activeCategory = cat;
+      renderMenu();
+    };
+
+    window.triggerHoverBurst = function (e, type, card) {
+      if (!HAS_FINE_POINTER || REDUCED_MOTION) return;
+      const rect = card.getBoundingClientRect();
+      spawnBurstExplosion(rect.left + rect.width / 2, rect.top + 100, type, 0.72);
+    };
+
+    window.handleCardTilt = function (e, card) {
+      if (!HAS_FINE_POINTER || REDUCED_MOTION) return;
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const rx = ((y / rect.height) - 0.5) * -8;
+      const ry = ((x / rect.width) - 0.5) * 8;
+      card.style.setProperty('--gx', `${((x / rect.width) * 100).toFixed(1)}%`);
+      card.style.setProperty('--gy', `${((y / rect.height) * 100).toFixed(1)}%`);
+      card.style.transform = `perspective(900px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-6px)`;
+    };
+
+    window.resetCardTilt = function (card) {
+      card.style.transform = '';
+    };
+
+    // -------------------------------------------------------------------------
+    // 8. MODAL, ORDER BAG & CHECKOUT
+    // -------------------------------------------------------------------------
+    window.openProductModal = function (id) {
+      const p = PRODUCTS.find((x) => x.id === id);
+      const modal = document.getElementById('product-modal');
+      if (!p || !modal) return;
+      activeModalId = p.id;
+
+      document.getElementById('modal-img').src = p.image;
+      document.getElementById('modal-img').alt = p.name;
+      document.getElementById('modal-cat').textContent = `${p.category} • ${p.badge}`;
+      document.getElementById('modal-heat').textContent = p.heat;
+      document.getElementById('modal-title').textContent = p.name;
+      document.getElementById('modal-price').textContent = `$${p.price.toFixed(2)}`;
+      document.getElementById('modal-desc').textContent = p.desc;
+      document.getElementById('modal-ingredients').innerHTML = p.ingredients
+        .map((ing) => `<span class="px-3 py-1 rounded-full bg-grill border border-cheddar/25 text-xs text-cream/90">${ing}</span>`)
+        .join('');
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    };
+
+    function closeProductModal() {
+      const modal = document.getElementById('product-modal');
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    window.addToBag = function (id, e) {
+      const p = PRODUCTS.find((x) => x.id === id);
+      if (!p) return;
+      const existing = cart.find((c) => c.id === p.id);
+      if (existing) existing.qty += 1;
+      else cart.push({ id: p.id, name: p.name, price: p.price, image: p.image, qty: 1 });
+
+      if (e && e.clientX) spawnBurstExplosion(e.clientX, e.clientY, p.burstType, 1.15);
+      playPopSfx(520);
+      renderBag();
+      showToast(`Added ${p.name} to Order Bag`);
+    };
+
+    window.addDealBoxToBag = function (e) {
+      const existing = cart.find((c) => c.id === 'squad-burst-box');
+      if (existing) existing.qty += 1;
+      else {
+        cart.push({
+          id: 'squad-burst-box',
+          name: 'The Ultimate Burst Box',
+          price: 34.99,
+          image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80',
+          qty: 1
+        });
+      }
+      if (e && e.clientX) spawnBurstExplosion(e.clientX, e.clientY, 'pizza', 1.4);
+      playPopSfx(580);
+      renderBag();
+      showToast('Squad Burst Box added!');
+    };
+
+    window.updateBagQty = function (id, delta) {
+      const item = cart.find((c) => c.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) cart = cart.filter((c) => c.id !== id);
+      renderBag();
+    };
+
+    function renderBag() {
+      const listEl = document.getElementById('bag-items');
+      const totalEl = document.getElementById('bag-total');
+      const countEl = document.getElementById('bag-count');
+
+      const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+      const totalAmt = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+      if (countEl) countEl.textContent = totalQty;
+      if (totalEl) totalEl.textContent = `$${totalAmt.toFixed(2)}`;
+      if (!listEl) return;
+
+      if (cart.length === 0) {
+        listEl.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center py-14 space-y-2">
+            <div class="text-4xl">🔥</div>
+            <div class="font-impact text-2xl text-cream tracking-wide">YOUR BAG IS EMPTY</div>
+            <p class="text-xs text-mist max-w-xs">Tap any burger, shawarma, loaded fries, or pizza to burst it into your order.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = cart
+        .map(
+          (i) => `
+          <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-charcoal border border-cheddar/20">
+            <img src="${i.image}" alt="${i.name}" class="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <div class="font-display text-sm font-bold text-cream truncate">${i.name}</div>
+              <div class="text-xs font-bold text-cheddar mt-0.5">$${(i.price * i.qty).toFixed(2)}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="updateBagQty('${i.id}', -1)" class="w-7 h-7 rounded-full bg-grill border border-cheddar/30 text-cream hover:border-cheddar text-xs font-bold">-</button>
+              <span class="text-xs font-bold text-cream w-4 text-center tabular-nums">${i.qty}</span>
+              <button type="button" onclick="updateBagQty('${i.id}', 1)" class="w-7 h-7 rounded-full bg-grill border border-cheddar/30 text-cream hover:border-cheddar text-xs font-bold">+</button>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    window.openBag = function () {
+      const b = document.getElementById('bag-backdrop');
+      const d = document.getElementById('bag-drawer');
+      if (!b || !d) return;
+      b.classList.remove('hidden');
+      requestAnimationFrame(() => d.classList.remove('translate-x-full'));
+    };
+
+    function closeBag() {
+      const b = document.getElementById('bag-backdrop');
+      const d = document.getElementById('bag-drawer');
+      if (!b || !d) return;
+      d.classList.add('translate-x-full');
+      setTimeout(() => b.classList.add('hidden'), 280);
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. MASTER 60FPS SCROLL CHOREOGRAPHY
+    // -------------------------------------------------------------------------
+    function initScrollChoreography() {
+      const bar = document.getElementById('scroll-progress');
+      const nav = document.getElementById('navbar');
+      const heroCopy = document.getElementById('hero-copy');
+      const heroStage = document.getElementById('hero-stage');
+      const flameSec = document.getElementById('flame-line');
+      const anatomySec = document.getElementById('anatomy-showcase');
+
+      const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+      function tick() {
+        const y = window.scrollY;
+        const winH = window.innerHeight;
+        const maxScroll = Math.max(1, document.documentElement.scrollHeight - winH);
+
+        if (bar) bar.style.width = `${clamp((y / maxScroll) * 100, 0, 100)}%`;
+
+        if (nav) {
+          if (y > 32) nav.classList.add('bg-charcoal/92', 'backdrop-blur-xl', 'border-cheddar/15', 'shadow-xl');
+          else nav.classList.remove('bg-charcoal/92', 'backdrop-blur-xl', 'border-cheddar/15', 'shadow-xl');
+        }
+
+        // Hero Scroll Parallax
+        if (!REDUCED_MOTION && y < winH * 1.2) {
+          if (heroCopy) heroCopy.style.transform = `translate3d(0, ${(y * 0.12).toFixed(1)}px, 0)`;
+          if (heroStage) heroStage.style.transform = `translate3d(0, ${(-y * 0.08).toFixed(1)}px, 0)`;
+        }
+
+        // Scroll-Driven Flame Line (Desktop >= 1024px)
+        if (flameSec && window.innerWidth >= 1024 && !REDUCED_MOTION) {
+          const rect = flameSec.getBoundingClientRect();
+          const travel = Math.max(1, flameSec.offsetHeight - winH);
+          const p = clamp(-rect.top / travel, 0, 1);
+
+          for (let i = 0; i < 4; i++) {
+            const seg = clamp((p - i * 0.25) / 0.25, 0, 1);
+            const fill = document.getElementById(`station-progress-${i}`);
+            if (fill) fill.style.width = `${(seg * 100).toFixed(1)}%`;
+          }
+
+          const targetIdx = p < 0.25 ? 0 : p < 0.50 ? 1 : p < 0.75 ? 2 : 3;
+          if (targetIdx !== activeStationIdx && window.applyFlameStation) {
+            window.applyFlameStation(targetIdx, true);
+          }
+        }
+
+        // Scroll-Driven Dish Anatomy: Combined Form -> Explode Ingredients -> Next Item
+        if (anatomySec && window.innerWidth >= 1024 && !REDUCED_MOTION) {
+          const rect = anatomySec.getBoundingClientRect();
+          const travel = Math.max(1, anatomySec.offsetHeight - winH);
+          const p = clamp(-rect.top / travel, 0, 0.9999);
+          const count = ANATOMY_ITEMS.length;
+          const segSize = 1 / count;
+          const itemIdx = Math.min(count - 1, Math.floor(p / segSize));
+          const localP = (p - itemIdx * segSize) / segSize;
+
+          // Update progress bars across all 4 dish tabs
+          for (let i = 0; i < count; i++) {
+            const segFill = clamp((p - i * segSize) / segSize, 0, 1);
+            const bar = document.getElementById(`anatomy-progress-${i}`);
+            if (bar) bar.style.width = `${(segFill * 100).toFixed(1)}%`;
+          }
+
+          if (window.renderAnatomyItem && itemIdx !== activeAnatomyIdx) {
+            window.renderAnatomyItem(itemIdx);
+          }
+
+          // Within each dish segment:
+          // 0.00 - 0.16: Combined Form | 0.16 - 0.68: Explode Ingredients | 0.68 - 0.88: Hold | 0.88 - 1.00: Re-combine for hand-off (except last dish)
+          let explodeP = 0;
+          if (localP < 0.16) {
+            explodeP = 0;
+          } else if (localP < 0.68) {
+            explodeP = (localP - 0.16) / 0.52;
+          } else if (localP < 0.88 || itemIdx === count - 1) {
+            explodeP = 1;
+          } else {
+            explodeP = 1 - (localP - 0.88) / 0.12;
+          }
+
+          if (window.applyAnatomyExplosion) {
+            window.applyAnatomyExplosion(explodeP, itemIdx);
+          }
+        }
+
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. GLOBAL CONTROLS, OBSERVERS & TOAST
+    // -------------------------------------------------------------------------
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      const m = document.getElementById('toast-msg');
+      if (!t || !m) return;
+      m.textContent = msg;
+      t.classList.remove('opacity-0', 'translate-y-4');
+      t.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.classList.add('opacity-0', 'translate-y-4');
+        t.classList.remove('opacity-100', 'translate-y-0');
+      }, 2200);
+    }
+
+    function initControls() {
+      document.getElementById('hero-burst-btn')?.addEventListener('click', (e) => {
+        const med = document.getElementById('hero-main-medallion');
+        if (med) triggerHeroFlavorBurst(med);
+        spawnBurstExplosion(e.clientX, e.clientY, 'pizza', 1.2);
+      });
+
+      document.getElementById('open-bag-btn')?.addEventListener('click', openBag);
+      document.getElementById('close-bag-btn')?.addEventListener('click', closeBag);
+      document.getElementById('bag-backdrop')?.addEventListener('click', (e) => {
+        if (e.target.id === 'bag-backdrop') closeBag();
+      });
+
+      document.getElementById('checkout-btn')?.addEventListener('click', (e) => {
+        if (cart.length === 0) {
+          showToast('Add a burger, pizza, shawarma, or fries first!');
+          return;
+        }
+        document.getElementById('ticket-code').textContent = 'EC-' + Math.floor(1000 + Math.random() * 9000);
+        document.getElementById('bag-items').classList.add('hidden');
+        document.getElementById('bag-footer').classList.add('hidden');
+        document.getElementById('bag-ticket').classList.remove('hidden');
+        spawnBurstExplosion(e.clientX, e.clientY, 'burger', 1.5);
+        playPopSfx(620);
+        cart = [];
+        renderBag();
+      });
+
+      document.getElementById('new-order-btn')?.addEventListener('click', () => {
+        document.getElementById('bag-items').classList.remove('hidden');
+        document.getElementById('bag-footer').classList.remove('hidden');
+        document.getElementById('bag-ticket').classList.add('hidden');
+        closeBag();
+      });
+
+      document.getElementById('close-modal-btn')?.addEventListener('click', closeProductModal);
+      document.getElementById('product-modal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'product-modal') closeProductModal();
+      });
+      document.getElementById('modal-add-btn')?.addEventListener('click', (e) => {
+        if (activeModalId) {
+          addToBag(activeModalId, e);
+          closeProductModal();
+        }
+      });
+
+      const sfxBtn = document.getElementById('sfx-btn');
+      const sfxDot = document.getElementById('sfx-dot');
+      const sfxLabel = document.getElementById('sfx-label');
+      sfxBtn?.addEventListener('click', () => {
+        sfxEnabled = !sfxEnabled;
+        if (sfxLabel) sfxLabel.textContent = sfxEnabled ? 'SFX On' : 'SFX Off';
+        if (sfxDot) sfxDot.className = `w-2 h-2 rounded-full ${sfxEnabled ? 'bg-flame animate-pulse' : 'bg-mist'}`;
+        if (sfxEnabled) playPopSfx(480);
+      });
+
+      const mobileBtn = document.getElementById('mobile-menu-btn');
+      const mobileNav = document.getElementById('mobile-nav');
+      mobileBtn?.addEventListener('click', () => mobileNav?.classList.toggle('hidden'));
+      document.querySelectorAll('.mobile-nav-link').forEach((l) => {
+        l.addEventListener('click', () => mobileNav?.classList.add('hidden'));
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeProductModal();
+          closeBag();
+        }
+      });
+
+      // Reveal-up IntersectionObserver
+      const obs = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              obs.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1 }
+      );
+      document.querySelectorAll('.reveal-up').forEach((el) => obs.observe(el));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initControls();
+      initFxCanvasAndMouseTrail();
+      initHeroOrbitCarousel();
+      initHangingToolPhysics();
+      initAnatomyShowcase();
+      initSauceBar();
+      initBranchesAndPartyForm();
+      initCrunchPhysicsPit();
+      initFlameLine();
+      renderMenu();
+      renderBag();
+      initScrollChoreography();
+    });
+  </script>
+</body>
+</html>
